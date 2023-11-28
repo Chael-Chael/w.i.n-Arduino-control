@@ -2,7 +2,7 @@
 #include <math.h>
 #include <Servo.h>
 #include "config.h"
-
+//每次使用请把夹爪升到最低状态
 //steer
 Servo steer;
 //gripper
@@ -17,7 +17,7 @@ byte vibrate = 0;
 //Wheels
 //int ACC = 0;
 int sp = 0;//speed initialization
-int step_count = 0;
+long step_count = MAX_REV * split *steps+per_rev;
 
 // Motor L1 connections
 int L1_en = 9;
@@ -357,20 +357,30 @@ void PS2_control(void)
   //DualShock Controller
   ps2x.read_gamepad(false, vibrate); //read controller and set large motor to spin at 'vibrate' speed
 
-  if(ps2x.ButtonPressed(PSB_RED))
+  if(ps2x.ButtonPressed(PSB_PINK))
   {
-      Serial.println("steer clock."); 
+      Serial.println("steer left."); 
+      if (isDropHeight(step_count) == 0 && )
       steer.write(90 + steerSp);
       delay(steerDelay);
       steer.write(90);
   }
-  else if(ps2x.ButtonPressed(PSB_PINK))
+  else if(ps2x.ButtonPressed(PSB_RED))
   {    
-      Serial.println("steer anitclock.");
+      Serial.println("steer right.");
       steer.write(90 - steerSp);
       delay(steerDelay);
       steer.write(90);
   }
+  else if(ps2x.ButtonPressed(PSB_BLUE))
+  {
+      Serial.println("steer middle."); 
+      steer.write(90 + steerSp);
+      delay(2*steerDelay);
+      steer.write(90);
+  }
+  else{}
+
 
   if(ps2x.ButtonPressed(PSB_GREEN))
   {
@@ -399,15 +409,32 @@ void PS2_control(void)
 
   if(ps2x.Button(PSB_PAD_UP))
   {
-    Serial.println("convey in work."); 
+    Serial.println("steer right.");
+    steer.write(90 - steerSp);
+    delay(steerDelay);
+    steer.write(90);
+  }
+
+  else if(ps2x.ButtonPressed(PSB_PAD_DOWN))
+  {    
+    Serial.println("convey in work.");
+    analogWrite(convey_en,CONVEY_SPEED);
+    digitalWrite(convey_in1,LOW);
+    digitalWrite(convey_in2,HIGH);
+    delay(DELAY);
+  }
+
+  if(ps2x.Button(PSB_PAD_LEFT))
+  {
+    Serial.println("steer left."); 
     analogWrite(convey_en,CONVEY_SPEED);
     digitalWrite(convey_in1,HIGH);
     digitalWrite(convey_in2,LOW);
     delay(DELAY);
   }
-  else if(ps2x.ButtonPressed(PSB_PAD_DOWN))
+  else if(ps2x.ButtonPressed(PSB_PAD_RIGHT))
   {    
-    Serial.println("convey in work.");
+    Serial.println("steer right.");
     analogWrite(convey_en,CONVEY_SPEED);
     digitalWrite(convey_in1,LOW);
     digitalWrite(convey_in2,HIGH);
@@ -426,13 +453,19 @@ void PS2_control(void)
 
   if (Y2 < 128 - HOLD)         //上
   {
-      stepper_up();
-      delay(DELAY);
+    if (isMaxHeight(step_count) == 0)
+    {
+      stepper_up(step_count);
+    }
+    delay(DELAY);
   }
   else if (Y2 > 128 + HOLD)
   {
-      stepper_down();
-      delay(DELAY);
+    if (isMinHeight(step_count) == 0)
+    {
+      stepper_down(step_count);
+    }
+    delay(DELAY);
   }
   else{}
 
@@ -529,6 +562,7 @@ void PS2_control(void)
   }
 }
 
+unsigned long previousTime = 0;
 
 void loop()
 {

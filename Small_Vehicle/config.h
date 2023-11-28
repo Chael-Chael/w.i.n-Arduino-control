@@ -28,6 +28,7 @@
 #define rev_per_sec 1
 #define split 1
 #define MAX_REV 10
+#define DROP_REV 1
 
 //car rotate speed(0 - 255)
 #define RSPEED 200
@@ -48,7 +49,7 @@
 
 //extern int rev_count;
 extern int delay_sec;
-extern int step_count;
+extern long step_count;
 
 void stepper_up();
 void stepper_down();
