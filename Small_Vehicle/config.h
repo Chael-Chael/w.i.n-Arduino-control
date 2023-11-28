@@ -9,7 +9,6 @@
 //A4988 Pin
 #define dirPin 1
 #define stepPin 2
- 
 #define MS1 1
 #define MS2 1
 #define MS3 1
@@ -23,10 +22,12 @@
 #define convey_in1 1
 #define convey_in2 1
 #define CONVEY_SPEED 100
+
 //step_motor
 #define steps_per_rev 200
 #define rev_per_sec 1
 #define split 1
+#define MAX_REV 10
 
 //car rotate speed(0 - 255)
 #define RSPEED 200
@@ -47,7 +48,11 @@
 
 //extern int rev_count;
 extern int delay_sec;
+extern int step_count;
 
 void stepper_up();
 void stepper_down();
 void ps2_init();
+
+int isMaxHeight(int step_count);
+int isMinHeight(int step_count);

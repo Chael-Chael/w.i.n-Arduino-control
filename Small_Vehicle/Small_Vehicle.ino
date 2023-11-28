@@ -17,6 +17,8 @@ byte vibrate = 0;
 //Wheels
 //int ACC = 0;
 int sp = 0;//speed initialization
+int step_count = 0;
+
 // Motor L1 connections
 int L1_en = 9;
 int L1_in1 = 28;
@@ -99,6 +101,8 @@ void setup() {
       digitalWrite(MS2, HIGH);
       digitalWrite(MS3, HIGH);
       break;
+    default:
+      break;
   }
 
   //steer setup
@@ -138,8 +142,6 @@ void setup() {
   digitalWrite(convey_in1, LOW);
   digitalWrite(convey_in2, LOW);
 }
-
-//functions for lift control
 
 //functions for wheels control
 //if is max/min speed, return 1;
