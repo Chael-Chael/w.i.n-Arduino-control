@@ -1,38 +1,14 @@
 #include <PS2X_lib.h>  //PS2的库文件，需先添加到Arduino IDE的库文件
 #include <math.h>
+#include <Servo.h>
 #include "config.h"
 
-//问题，关于sp
-/*PS2引脚定义*/
-#define PS2_DAT_PIN  A11
-#define PS2_CMD_PIN  A10
-#define PS2_SEL_PIN  A9
-#define PS2_CLK_PIN  A8  
+//steer
+Servo steer;
+//gripper
+Servo gripper;
 
-//car rotate & lifting speed(0 - 255)
-#define RSPEED 200
-#define LFSPEED 255
-
-//brake acceleration
-#define RANGE 10
-
-//tweak delay between movements for better control
-#define DELAY 50
-
-//acceleration
-#define PLUSACC 5
-#define MINUSACC 5
-
-//speed
-#define MAX_SPEED 255
-
-//axis threshold for accelerating, must be no more than 125
-#define HOLD 100
-#define pressures   false  //按键模式
-#define rumble      false  //振动模式
-
-//PS2X
-PS2X ps2x;                //定义ps2x为PS2X类变量
+PS2X ps2x;     
 
 int error = 0;
 byte type = 0;
@@ -58,17 +34,12 @@ int R2_en = 7;
 int R2_in1 = 30;
 int R2_in2 = 32;
 
-//Board Lift
-//Motor connection
-int lift_motor_enA = 2;
-int lift_motor_enB = 3;
-int lift_motor_in1 = 41;
-int lift_motor_in2 = 39;
-int lift_motor_in3 = 37;
-int lift_motor_in4 = 35;
-
-//Lifting speed
-int liftSpeed = 0;
+//steerSp, must be no more than 90
+int steerSp=10;
+int steerDelay=250;
+int gripSp=10;
+int gripDelay=250;
+int gripState=0;//0 = open, 1 = closed
 
 /*小车运行状态枚举*/
 enum {
@@ -87,71 +58,54 @@ enum {
 
 int g_CarState = enSTOP;
 
+void (* resetFunc) (void) = 0;
+
 void setup() {
   //PS2X Setup
+  ps2_init();
 
-  //串口波特率设置
-  Serial.begin(9600);
+  //stepper setup
+  pinMode(dirPin,OUTPUT);
+  pinMode(stepPin,OUTPUT);
 
-  //在配置无线PS2模块之前，延时300ms以便于配置生效
-  delay(300);
+  pinMode(MS1, OUTPUT);
+  pinMode(MS2, OUTPUT);
+  pinMode(MS3, OUTPUT);
 
-  /*PS2初始化*/
-  //报错查询
-  error = ps2x.config_gamepad(PS2_CLK_PIN, PS2_CMD_PIN, PS2_SEL_PIN, PS2_DAT_PIN, pressures, rumble);
-  if (error == 0)
+  switch (split)
   {
-    Serial.print("Found Controller, configured successful ");
-    Serial.print("pressures = ");
-    if (pressures)
-    {
-      Serial.println("true ");
-    }
-    else
-    {
-      Serial.println("false");
-    }
-    Serial.print("rumble = ");
-    if (rumble)
-    {
-      Serial.println("true)");
-    }
-    else
-    {
-      Serial.println("false");
-    }
-    Serial.println("Try out all the buttons, X will vibrate the controller, faster as you press harder;");
-    Serial.println("holding L1 or R1 will print out the analog stick values.");
-    Serial.println("Note: Go to www.billporter.info for updates and to report bugs.");
-  }
-  else if (error == 1)
-    Serial.println("No controller found, check wiring, see readme.txt to enable debug. visit www.billporter.info for troubleshooting tips");
-
-  else if (error == 2)
-    Serial.println("Controller found but not accepting commands. see readme.txt to enable debug. Visit www.billporter.info for troubleshooting tips");
-
-  else if (error == 3)
-    Serial.println("Controller refusing to enter Pressures mode, may not support it. ");
-
-  //获取手柄类型
-  type = ps2x.readType();
-  switch (type) {
-    case 0:
-      Serial.print("Unknown Controller type found ");
-      break;
     case 1:
-      Serial.print("DualShock Controller found ");
+      digitalWrite(MS1, LOW);
+      digitalWrite(MS2, LOW);
+      digitalWrite(MS3, LOW);
       break;
     case 2:
-      Serial.print("GuitarHero Controller found ");
+      digitalWrite(MS1, HIGH);
+      digitalWrite(MS2, LOW);
+      digitalWrite(MS3, LOW);
       break;
-    case 3:
-      Serial.print("Wireless Sony DualShock Controller found ");
+    case 4:
+      digitalWrite(MS1, LOW);
+      digitalWrite(MS2, HIGH);
+      digitalWrite(MS3, LOW);
+      break;
+    case 8:
+      digitalWrite(MS1, HIGH);
+      digitalWrite(MS2, HIGH);
+      digitalWrite(MS3, LOW);
+      break;
+    case 16:
+      digitalWrite(MS1, HIGH);
+      digitalWrite(MS2, HIGH);
+      digitalWrite(MS3, HIGH);
       break;
   }
 
+  //steer setup
+  steer.attach(steerSig);
+  gripper.attach(gripperSig);
+
   //Motors setup
-  //初始化电机驱动IO为输出方式
   pinMode(L1_in1, OUTPUT);
   pinMode(L1_in2, OUTPUT);
   pinMode(L1_en, OUTPUT);
@@ -168,6 +122,10 @@ void setup() {
   pinMode(R2_in2, OUTPUT);
   pinMode(R2_en, OUTPUT);
 
+  pinMode(convey_en, OUTPUT);
+  pinMode(convey_in1, OUTPUT);
+  pinMode(convey_in2, OUTPUT);
+
 	// Turn off motors - Initial state
 	digitalWrite(L1_in1, LOW);
 	digitalWrite(L1_in2, LOW);
@@ -177,57 +135,13 @@ void setup() {
   digitalWrite(L2_in2, LOW);
   digitalWrite(R2_in1, LOW);
   digitalWrite(R2_in2, LOW);
-
-  //lift motor initialization
-  pinMode(lift_motor_enA, OUTPUT);
-  pinMode(lift_motor_enB, OUTPUT);
-  pinMode(lift_motor_in1, OUTPUT);
-  pinMode(lift_motor_in2, OUTPUT);
-  pinMode(lift_motor_in3, OUTPUT);
-  pinMode(lift_motor_in4, OUTPUT);
-
-  digitalWrite(lift_motor_in1, LOW);
-  digitalWrite(lift_motor_in2, LOW);
-  digitalWrite(lift_motor_in3, LOW);
-  digitalWrite(lift_motor_in4, LOW);
+  digitalWrite(convey_in1, LOW);
+  digitalWrite(convey_in2, LOW);
 }
 
 //functions for lift control
-void lift(int sp)
-{
-  Serial.println("Lifting.");
-  digitalWrite(lift_motor_in1,LOW);
-  digitalWrite(lift_motor_in2,HIGH);
-  digitalWrite(lift_motor_in3,LOW);
-  digitalWrite(lift_motor_in4,HIGH);
-  analogWrite(lift_motor_enA,sp);
-  analogWrite(lift_motor_enB,sp);
-  delay(DELAY);
-}
-
-void lower(int sp)
-{
-  Serial.println("Lowering.");
-  digitalWrite(lift_motor_in1,HIGH);
-  digitalWrite(lift_motor_in2,LOW);
-  digitalWrite(lift_motor_in3,HIGH);
-  digitalWrite(lift_motor_in4,LOW);
-  analogWrite(lift_motor_enA,sp);
-  analogWrite(lift_motor_enB,sp);
-  delay(DELAY);
-}
-
-void liftstop()
-{
-  Serial.println("lift stop.");
-  digitalWrite(lift_motor_in1,LOW);
-  digitalWrite(lift_motor_in2,LOW);
-  digitalWrite(lift_motor_in3,LOW);
-  digitalWrite(lift_motor_in4,LOW);
-}
 
 //functions for wheels control
-
 //if is max/min speed, return 1;
 int isMaxSpeed(int speed)
 {
@@ -254,35 +168,6 @@ int isMinSpeed(int speed)
     return 0;
   }
 }
-
-//functions for speed
-/*int speedplus(int ACC, int speed)
-{
-  if (isMaxSpeed(speed + ACC) == 0)
-  {
-    speed += ACC;
-  }
-  else
-  {
-    speed = MAX_SPEED;
-  }
-  return speed;
-}*/
-
-/*int getACC(int x, int y)
-{
-  double xdistance = (double)abs(x-128);
-  double ydistance = (double)abs(y-128);
-  if ( (sqrt(xdistance*xdistance + ydistance*ydistance)) <= (128.0 - (double)HOLD))
-  {
-    ACC = 0;
-  }
-  else
-  {
-    ACC = (int)( MAX_ACC*( sqrt(xdistance*xdistance + ydistance*ydistance) - 128.0 + (double)HOLD) / (double)HOLD );
-  }
-  return ACC;
-}*/
 
 int getsp(int x, int y)
 {
@@ -462,27 +347,92 @@ void anticlock(int sp)
 void PS2_control(void)
 {
   //摇杆方向值变量的定义
-  int X1, Y1;
-  //如果手柄初始化失败或者手柄类型没找到,则返回
-  /*if (error == 1)           //skip loop if no controller found
-    return;
-  if (type != 1)            //skip loop if no controller found
-    return;
-  */
+  int X1, Y1, X2, Y2;
+
+  //this will set the large motor vibrate speed based on how hard you press the blue (X) button
+  vibrate = ps2x.Analog(PSAB_CROSS);
 
   //DualShock Controller
   ps2x.read_gamepad(false, vibrate); //read controller and set large motor to spin at 'vibrate' speed
 
-  //手柄上的START键按下
-  if (ps2x.Button(PSB_START))        //will be TRUE as long as button is pressed
-    Serial.println("Start is being held");
+  if(ps2x.ButtonPressed(PSB_RED))
+  {
+      Serial.println("steer clock."); 
+      steer.write(90 + steerSp);
+      delay(steerDelay);
+      steer.write(90);
+  }
+  else if(ps2x.ButtonPressed(PSB_PINK))
+  {    
+      Serial.println("steer anitclock.");
+      steer.write(90 - steerSp);
+      delay(steerDelay);
+      steer.write(90);
+  }
 
-  //手柄上的SELECT键按下
-  if (ps2x.Button(PSB_SELECT))
-    Serial.println("Select is being held");
+  if(ps2x.ButtonPressed(PSB_GREEN))
+  {
+    if (gripState == 0)//if open
+    {
+      Serial.println("Grip closed.");
+      gripper.write(90 + gripSp);
+      delay(gripDelay);
+      gripper.write(90);
+      gripState = ! gripState;
+    }
+    else if (gripState == 1)
+    {
+      Serial.println("Grip opened.");
+      gripper.write(90 - gripSp);
+      delay(gripDelay);
+      gripper.write(90);
+      gripState = ! gripState;
+    }
+    else
+    {
+      Serial.print("current state: ");
+      Serial.println(gripState);
+    }
+  }
 
-  //this will set the large motor vibrate speed based on how hard you press the blue (X) button
-  vibrate = ps2x.Analog(PSAB_CROSS);
+  if(ps2x.Button(PSB_PAD_UP))
+  {
+    Serial.println("convey in work."); 
+    analogWrite(convey_en,CONVEY_SPEED);
+    digitalWrite(convey_in1,HIGH);
+    digitalWrite(convey_in2,LOW);
+    delay(DELAY);
+  }
+  else if(ps2x.ButtonPressed(PSB_PAD_DOWN))
+  {    
+    Serial.println("convey in work.");
+    analogWrite(convey_en,CONVEY_SPEED);
+    digitalWrite(convey_in1,LOW);
+    digitalWrite(convey_in2,HIGH);
+    delay(DELAY);
+  }
+
+  Serial.print("Stick R Values:");
+  Serial.print(ps2x.Analog(PSS_RY), DEC); //Left stick, Y axis. Other options: LX, RY, RX
+  Serial.print(",");
+  Serial.print(ps2x.Analog(PSS_RX), DEC);
+  Serial.print(" ");
+
+  //读取摇杆的数据
+  Y2 = ps2x.Analog(PSS_RY);
+  X2 = ps2x.Analog(PSS_RX);
+
+  if (Y2 < 128 - HOLD)         //上
+  {
+      stepper_up();
+      delay(DELAY);
+  }
+  else if (Y2 > 128 + HOLD)
+  {
+      stepper_down();
+      delay(DELAY);
+  }
+  else{}
 
   //L1即手柄左侧前方下面的按键按下即小车减速
   if (ps2x.Button(PSB_L1))
@@ -500,7 +450,7 @@ void PS2_control(void)
 
   //When triggered
   //print stick values if either is TRUE
-  Serial.print("Stick Values:");
+  Serial.println("Stick L Values:");
   Serial.print(ps2x.Analog(PSS_LY), DEC); //Left stick, Y axis. Other options: LX, RY, RX
   Serial.print(",");
   Serial.print(ps2x.Analog(PSS_LX), DEC);
@@ -608,18 +558,6 @@ void loop()
     default: break;
   }
 
-  if (ps2x.Button(PSB_PINK))
-  {
-    lift(LFSPEED);
-  }
-  else if (ps2x.Button(PSB_RED))
-  {
-    lower(LFSPEED);
-  }
-  else
-  {
-    liftstop();
-  }
 
   Serial.print("Speed:");
   Serial.println(sp);

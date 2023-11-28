@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "config.h"
 
-int delay_sec = (int)(1000 / (step_per_rev * split * rev_per_sec))
+int delay_sec = (int)(1000 / (steps_per_rev * split * rev_per_sec));
 
 void stepper_up()
 {
