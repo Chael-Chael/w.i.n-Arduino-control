@@ -57,3 +57,4 @@ void ps2_init();
 
 int isMaxHeight(int step_count);
 int isMinHeight(int step_count);
+int isDropHeight(int step_count);
