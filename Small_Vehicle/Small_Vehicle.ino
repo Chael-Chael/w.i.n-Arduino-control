@@ -18,6 +18,11 @@ byte vibrate = 0;
 //int ACC = 0;
 int sp = 0;//speed initialization
 long step_count = MAX_REV * split *steps+per_rev;
+unsigned long previousTime = 0;
+int steerState = 0;
+int stepperState = 0;
+int gripState = 0;
+int direction - 0;
 
 // Motor L1 connections
 int L1_en = 9;
@@ -357,64 +362,155 @@ void PS2_control(void)
   //DualShock Controller
   ps2x.read_gamepad(false, vibrate); //read controller and set large motor to spin at 'vibrate' speed
 
+//auto mode
   if(ps2x.ButtonPressed(PSB_PINK))
   {
       Serial.println("steer left."); 
-      if (isDropHeight(step_count) == 0 && )
-      steer.write(90 + steerSp);
-      delay(steerDelay);
-      steer.write(90);
+      steerState = 1;
+      stepperState = 1;
+      gripState = 1;
+      direction = 1;
+      previousTime = millis();
   }
   else if(ps2x.ButtonPressed(PSB_RED))
   {    
       Serial.println("steer right.");
-      steer.write(90 - steerSp);
-      delay(steerDelay);
-      steer.write(90);
-  }
-  else if(ps2x.ButtonPressed(PSB_BLUE))
-  {
-      Serial.println("steer middle."); 
-      steer.write(90 + steerSp);
-      delay(2*steerDelay);
-      steer.write(90);
+      steerState = 2;
+      stepperState = 1;
+      gripState = 1;
+      direction = 2;
+      previousTime = millis();
   }
   else{}
 
-
-  if(ps2x.ButtonPressed(PSB_GREEN))
+//stepper
+  if (stepperState == 1 && gripState == 1 && (steerState != 0))
   {
-    if (gripState == 0)//if open
+    if (isDropHeight(step_count) == 0)
     {
-      Serial.println("Grip closed.");
-      gripper.write(90 + gripSp);
-      delay(gripDelay);
-      gripper.write(90);
-      gripState = ! gripState;
-    }
-    else if (gripState == 1)
-    {
-      Serial.println("Grip opened.");
-      gripper.write(90 - gripSp);
-      delay(gripDelay);
-      gripper.write(90);
-      gripState = ! gripState;
+        if (step_count < DROP_REV * split *steps_per_rev)
+        {
+            stepper_down(step_count);
+        }
+        else if (step_count > DROP_REV * split *steps_per_rev)
+        {
+            stepper_up(step_count);
+        }
     }
     else
     {
-      Serial.print("current state: ");
-      Serial.println(gripState);
+      stepperState = 0;
     }
   }
+  else{}
 
-  if(ps2x.Button(PSB_PAD_UP))
+//rotate
+  if (steerState == 1 && stepperState == 0 && gripState == 1)
   {
-    Serial.println("steer right.");
-    steer.write(90 - steerSp);
-    delay(steerDelay);
+    if ((millis() - previousTime) < steerDelay)
+    {
+      steer.write(90 + steerSp);
+    }
+    else
+    {
+      steer.write(90);
+      previousTime = millis();
+      steerState = 0;
+    }
+  }
+  else if(steerState == 2 && stepperState == 0 && gripState == 1)
+  {
+    if ((millis() - previousTime) < steerDelay)
+    {
+      steer.write(90 - steerSp);
+    }
+    else
+    {
+      steer.write(90);
+      previousTime = millis();
+      steerState = 0;
+    }
+  }
+  else
+  {
     steer.write(90);
   }
 
+//grip
+  if (steerState == 0 && stepperState == 0 && gripState == 1)
+  {
+    if ((millis() - previousTime) < gripDelay)
+    {
+      steer.write(90 + gripSp);
+    }
+    else
+    {
+      steer.write(90);
+      delay(100);
+      previousTime = millis();
+      gripState = 0;
+      (direction == 1) ? steerState = 1 : steerState =2;
+    }
+  }
+
+//rotate
+  if (steerState == 1 && gripState == 0)
+  {
+    if ((millis() - previousTime) < steerDelay)
+    {
+      steer.write(90 - steerSp);
+    }
+    else
+    {
+      steer.write(90);
+      previousTime = millis();
+      steerState = 0;
+    }
+  }
+  else if(steerState == 2 && gripState == 0)
+  {
+    if ((millis() - previousTime) < steerDelay)
+    {
+      steer.write(90 + steerSp);
+    }
+    else
+    {
+      steer.write(90);
+      previousTime = millis();
+      steerState = 0;
+    }
+  }
+  else
+  {
+    steer.write(90);
+  }
+
+//grip maunal
+  if(ps2x.ButtonPressed(PSB_GREEN))
+  {
+    Serial.println("Grip closing.");
+    gripper.write(90 + gripSp);
+  }
+  else if (ps2x.ButtonPressed(PSB_BLUE))
+  {
+    Serial.println("Grip opening.");
+    gripper.write(90 - gripSp);
+  }
+  else if (grip)
+  {
+    gripper.write(90);
+  }
+
+//convey manual
+  if(ps2x.Button(PSB_PAD_UP))
+  {
+    Serial.println("convey in work.");
+    analogWrite(convey_en,CONVEY_SPEED);
+    digitalWrite(convey_in1,HIGH);
+    digitalWrite(convey_in2,LOW);
+    delay(DELAY);
+  }
+<
   else if(ps2x.ButtonPressed(PSB_PAD_DOWN))
   {    
     Serial.println("convey in work.");
@@ -424,21 +520,19 @@ void PS2_control(void)
     delay(DELAY);
   }
 
+//steer manual
   if(ps2x.Button(PSB_PAD_LEFT))
   {
     Serial.println("steer left."); 
-    analogWrite(convey_en,CONVEY_SPEED);
-    digitalWrite(convey_in1,HIGH);
-    digitalWrite(convey_in2,LOW);
-    delay(DELAY);
+    steer.write(90 - steerSp);
+    delay(steerDelay);
+    steer.write(90);
   }
   else if(ps2x.ButtonPressed(PSB_PAD_RIGHT))
   {    
     Serial.println("steer right.");
-    analogWrite(convey_en,CONVEY_SPEED);
-    digitalWrite(convey_in1,LOW);
-    digitalWrite(convey_in2,HIGH);
-    delay(DELAY);
+    delay(steerDelay);
+    steer.write(90);
   }
 
   Serial.print("Stick R Values:");
@@ -561,8 +655,6 @@ void PS2_control(void)
     }
   }
 }
-
-unsigned long previousTime = 0;
 
 void loop()
 {

@@ -43,7 +43,7 @@ int isDropHeight(long step_count)
     }
 }
 
-void stepper_up())
+void stepper_up(long step_count)
 {
     digitalWrite(dirPin, LOW);
     digitalWrite(stepPin, HIGH);
@@ -53,7 +53,7 @@ void stepper_up())
     step_count += 2; 
 }  
 
-void stepper_down(int step_count)
+void stepper_down(long step_count)
 {
     digitalWrite(dirPin, HIGH);
     digitalWrite(stepPin, HIGH);
