@@ -9,8 +9,10 @@
 #define MS3
 
 //step_motor Pin
-#define stepsPerRotation 200
-#define pulse 
+#define steps_per_rev 200
+#define max_rev
+#define split 1
+#define  
 
 //servo Pin
 #define 
@@ -21,6 +23,8 @@
 #define motor_in1
 #define motor_in2
 
+//extern int rev_count;
+extern int delay_sec;
 
-void stepper_up(int sp);
-void stepper_down(int sp);
+void stepper_up();
+void stepper_down();
