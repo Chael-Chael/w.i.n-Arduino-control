@@ -9,21 +9,21 @@
 #define PS2_CLK_PIN  A11  
 
 //car rotate & lifting speed(0 - 255)
-#define RSPEED 200
+#define RSPEED 180
 #define LFSPEED 255
 
 //brake acceleration
 #define RANGE 10
 
 //tweak delay between movements for better control
-#define DELAY 50
+#define DELAY 0
 
 //acceleration
 #define PLUSACC 5
 #define MINUSACC 5
 
 //speed
-#define MAX_SPEED 255
+#define MAX_SPEED 240
 
 //axis threshold for accelerating, must be no more than 125
 #define HOLD 100
@@ -41,17 +41,17 @@ byte vibrate = 0;
 //int ACC = 0;
 int sp = 0;//speed initialization
 // Motor L1 connections
-int L1_en = 9;
-int L1_in1 = 46;
-int L1_in2 = 48;
+int L1_en = 6;
+int L1_in1 = 24;
+int L1_in2 = 22;
 // Motor R1 connections
 int R1_en = 8;
 int R1_in1 = 50;
 int R1_in2 = 52;
 //Motor L2 connections
-int L2_en = 6;
-int L2_in1 = 24;
-int L2_in2 = 22;
+int L2_en = 9;
+int L2_in1 = 46;
+int L2_in2 = 48;
 //Motor R2 connections
 int R2_en = 7;
 int R2_in1 = 28;
@@ -303,6 +303,10 @@ int getsp(int x, int y)
 void allstop()
 {
   Serial.println("Car stop.");
+  analogWrite(L1_en,0);
+  analogWrite(L2_en,0);
+  analogWrite(R1_en,0);
+  analogWrite(R2_en,0);
   digitalWrite(L1_in1,LOW);
   digitalWrite(L1_in2,LOW);  
   digitalWrite(R1_in1,LOW);
@@ -316,24 +320,28 @@ void allstop()
 
 void L1_forward(int sp)//左前轮前进
 {
+  Serial.print("L1_f ");
   analogWrite(L1_en,sp);
   digitalWrite(L1_in1,LOW);
   digitalWrite(L1_in2,HIGH);
 }
 void R1_forward(int sp)//右前轮前进
 {
+  Serial.print("R1_f ");
   analogWrite(R1_en,sp);
   digitalWrite(R1_in1,LOW);
   digitalWrite(R1_in2,HIGH);
 }
 void L2_forward(int sp)//左后轮前进
 {
+  Serial.print("L2_f ");
   analogWrite(L2_en,sp);
   digitalWrite(L2_in1,LOW);
   digitalWrite(L2_in2,HIGH);
 }
 void R2_forward(int sp)//右后轮前进
 {
+  Serial.print("R2_f ");
   analogWrite(R2_en,sp);
   digitalWrite(R2_in1,HIGH);
   digitalWrite(R2_in2,LOW);
@@ -341,24 +349,28 @@ void R2_forward(int sp)//右后轮前进
 
 void L1_backward(int sp)//左前轮后退
 {
+  Serial.print("L1_b ");
   analogWrite(L1_en,sp);
   digitalWrite(L1_in1,HIGH);
   digitalWrite(L1_in2,LOW);
 }
 void R1_backward(int sp)//右前轮后退
 {
+  Serial.print("R1_b ");
   analogWrite(R1_en,sp);
   digitalWrite(R1_in1,HIGH);
   digitalWrite(R1_in2,LOW);
 }
 void L2_backward(int sp)//左后轮后退
 {
+  Serial.print("L2_b ");
   analogWrite(L2_en,sp);
   digitalWrite(L2_in1,HIGH);
   digitalWrite(L2_in2,LOW);
 }
 void R2_backward(int sp)//右后轮后退
 {
+  Serial.print("R2_b ");
   analogWrite(R2_en,sp);
   digitalWrite(R2_in1,LOW);
   digitalWrite(R2_in2,HIGH);
@@ -387,9 +399,9 @@ void back(int sp)
 void left(int sp)
 {
   Serial.println("Car left.");
-  L1_backward(sp);
+  L2_backward(sp);
   R1_forward(sp);
-  L2_forward(sp);
+  L1_forward(sp);
   R2_backward(sp);
   delay(DELAY);
 }
@@ -398,17 +410,19 @@ void right(int sp)
 {
   Serial.println("Car right.");
   R1_backward(sp);
-  L1_forward(sp);
+  L2_forward(sp);
   R2_forward(sp);
-  L2_backward(sp);
+  L1_backward(sp);
   delay(DELAY);
 }
 
 void upleft(int sp)
 {
   Serial.println("Car upleft.");
+  L1_forward(sp);
   R1_forward(sp);
-  L2_forward(sp);
+  L2_forward(0);
+  R2_forward(sp);
   delay(DELAY);
 }
 
@@ -439,9 +453,9 @@ void downright(int sp)
 void clock(int sp)
 {
   Serial.println("Car clock.");
-  L1_forward(sp);
-  R1_backward(sp);
   L2_forward(sp);
+  R1_backward(sp);
+  L1_forward(sp);
   R2_backward(sp);
   delay(10);
 }
@@ -449,9 +463,9 @@ void clock(int sp)
 void anticlock(int sp)
 {
   Serial.println("Car anticlock.");
-  L1_backward(sp);
-  R1_forward(sp);
   L2_backward(sp);
+  R1_forward(sp);
+  L1_backward(sp);
   R2_forward(sp);
   delay(10);
 }
@@ -537,25 +551,25 @@ void PS2_control(void)
   {
     //sp = speedplus(getACC(X1, Y1), sp);
     //sp = getsp(X1, Y1);
-    g_CarState = enUPLEFT;
+    g_CarState = enRUN;
   }
   else if (Y1 <= 80 && X1 >= 180)          //右上
   {
     //sp = speedplus(getACC(X1, Y1), sp);
     //sp = getsp(X1, Y1);
-    g_CarState = enUPRIGHT;
+    g_CarState = enRUN;
   }
   else if (X1 <= 80 && Y1 >= 180)          //左下
   {
     //sp = speedplus(getACC(X1, Y1), sp);
     //sp = getsp(X1, Y1);
-    g_CarState = enDOWNLEFT;
+    g_CarState = enBACK;
   }
   else if (Y1 >= 180 && X1 >= 180)        //右下
   {
     //sp = speedplus(getACC(X1, Y1), sp);
     //sp = getsp(X1, Y1);
-    g_CarState = enDOWNRIGHT;
+    g_CarState = enBACK;
   }
   else                                  //停
   {

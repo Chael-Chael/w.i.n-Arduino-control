@@ -2,6 +2,11 @@
 #include "config.h"
 #include <PS2X_lib.h>  
 
+int error = 0;
+PS2X ps2x; 
+byte type = 0;
+byte vibrate = 0;
+
 void ps2_init()
 {
   //串口波特率设置
