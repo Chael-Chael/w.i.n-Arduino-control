@@ -1,9 +1,10 @@
 #include "Arduino.h"
 #include "config.h"
 
-int delay_sec = (int)(1000 / (steps_per_rev * split * rev_per_sec));
+extern unsigned long step_count;
+int delay_sec = 200;//(int)(1000 / (steps_per_rev * split * rev_per_sec));
 
-int isMaxHeight(long step_count)
+int isMaxHeight(unsigned long step_count)
 {
     if(step_count != (MAX_REV * split *steps_per_rev))
     {
@@ -17,7 +18,7 @@ int isMaxHeight(long step_count)
     }
 }
 
-int isMinHeight(long step_count)
+int isMinHeight(unsigned long step_count)
 {
     if(step_count != 0)
     {
@@ -31,7 +32,7 @@ int isMinHeight(long step_count)
     }
 }
 
-int isDropHeight(long step_count)
+int isDropHeight(unsigned long step_count)
 {
     if(step_count == (DROP_REV * split *steps_per_rev))
     {
@@ -43,8 +44,9 @@ int isDropHeight(long step_count)
     }
 }
 
-void stepper_up(long step_count)
+void stepper_up(unsigned long step_count)
 {
+    //Serial.println("stepper_down");
     digitalWrite(dirPin, LOW);
     digitalWrite(stepPin, HIGH);
     delayMicroseconds(delay_sec/2);
@@ -53,8 +55,13 @@ void stepper_up(long step_count)
     step_count += 2; 
 }  
 
-void stepper_down(long step_count)
+void stepper_stop()
 {
+}
+
+void stepper_down(unsigned long step_count)
+{
+    //Serial.println("stepper_down");
     digitalWrite(dirPin, HIGH);
     digitalWrite(stepPin, HIGH);
     delayMicroseconds(delay_sec/2);

@@ -8,21 +8,21 @@ Servo steer;
 //gripper
 Servo gripper;
 
-PS2X ps2x;     
+  // PS2X ps2x;     
 
-int error = 0;
-byte type = 0;
-byte vibrate = 0;
+  // int error = 0;
+  // byte type = 0;
+  // byte vibrate = 0;
 
 //Wheels
 //int ACC = 0;
 int sp = 0;//speed initialization
-long step_count = MAX_REV * split *steps+per_rev;
+unsigned long step_count = 100;//MAX_REV * split * steps_per_rev;
 unsigned long previousTime = 0;
 int steerState = 0;
 int stepperState = 0;
 int gripState = 0;
-int direction - 0;
+int direction = 0;
 
 // Motor L1 connections
 int L1_en = 9;
@@ -46,7 +46,6 @@ int steerSp=10;
 int steerDelay=250;
 int gripSp=10;
 int gripDelay=250;
-int gripState=0;//0 = open, 1 = closed
 
 /*小车运行状态枚举*/
 enum {
@@ -496,7 +495,7 @@ void PS2_control(void)
     Serial.println("Grip opening.");
     gripper.write(90 - gripSp);
   }
-  else if (grip)
+  else if (gripState == 0)
   {
     gripper.write(90);
   }
@@ -506,11 +505,10 @@ void PS2_control(void)
   {
     Serial.println("convey in work.");
     analogWrite(convey_en,CONVEY_SPEED);
-    digitalWrite(convey_in1,HIGH);
-    digitalWrite(convey_in2,LOW);
+    digitalWrite(convey_in1,LOW);
+    digitalWrite(convey_in2,HIGH);
     delay(DELAY);
   }
-<
   else if(ps2x.ButtonPressed(PSB_PAD_DOWN))
   {    
     Serial.println("convey in work.");
@@ -549,6 +547,7 @@ void PS2_control(void)
   {
     if (isMaxHeight(step_count) == 0)
     {
+      Serial.println("stepper_up");
       stepper_up(step_count);
     }
     delay(DELAY);
@@ -557,11 +556,14 @@ void PS2_control(void)
   {
     if (isMinHeight(step_count) == 0)
     {
+      Serial.println("stepper_down");
       stepper_down(step_count);
     }
     delay(DELAY);
   }
-  else{}
+  else{
+
+  }
 
   //L1即手柄左侧前方下面的按键按下即小车减速
   if (ps2x.Button(PSB_L1))
@@ -579,7 +581,7 @@ void PS2_control(void)
 
   //When triggered
   //print stick values if either is TRUE
-  Serial.println("Stick L Values:");
+  Serial.print("Stick L Values:");
   Serial.print(ps2x.Analog(PSS_LY), DEC); //Left stick, Y axis. Other options: LX, RY, RX
   Serial.print(",");
   Serial.print(ps2x.Analog(PSS_LX), DEC);
@@ -689,6 +691,8 @@ void loop()
 
   Serial.print("Speed:");
   Serial.println(sp);
+  Serial.print("Step_count:");
+  Serial.println(step_count);
 
  //下面的延时是必须要的,主要是为了避免过于频繁的发送手柄指令造成的不断重启
   delay(50);
