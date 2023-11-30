@@ -84,7 +84,7 @@ void setup() {
   pinMode(MS2, OUTPUT);
   pinMode(MS3, OUTPUT);
 
-  stepper.setMaxSpeed(MAX_SPEED);
+  stepper.setMaxSpeed(MAX_STEER_SPEED);
   stepper.setAcceleration(ACCELERATION);
   stepper.setCurrentPosition(0);
 
@@ -513,11 +513,13 @@ void PS2_control(void)
     {
       Serial.println("Grip closing.");
       gripper.write(90 + gripSp);
+      delay(gripDelay);
     }
     else if (ps2x.ButtonPressed(PSB_BLUE))
     {
       Serial.println("Grip opening.");
       gripper.write(90 - gripSp);
+      delay(gripDelay);
     }
     else{} 
 
@@ -525,13 +527,14 @@ void PS2_control(void)
     if(ps2x.Button(PSB_PAD_LEFT))
     {
       Serial.println("steer left."); 
-      steer.write(90 - steerSp);
+      steer.write(90 + steerSp);
       delay(steerDelay);
       steer.write(90);
     }
     else if(ps2x.ButtonPressed(PSB_PAD_RIGHT))
     {    
       Serial.println("steer right.");
+      steer.write(90 - steerSp);
       delay(steerDelay);
       steer.write(90);
     }
@@ -568,7 +571,7 @@ void PS2_control(void)
     digitalWrite(convey_in2,HIGH);
     delay(DELAY);
   }
-  else if(ps2x.ButtonPressed(PSB_PAD_DOWN))
+  else if(ps2x.Button(PSB_PAD_DOWN))
   {    
     Serial.println("convey in work.");
     analogWrite(convey_en,CONVEY_SPEED);

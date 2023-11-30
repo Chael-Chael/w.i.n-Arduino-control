@@ -24,9 +24,18 @@
 
 ### Accelstepper_Lib
 
+官方说明：
+
+> http://www.airspayce.com/mikem/arduino/AccelStepper/index.html
+
+太极教程：
+
 > http://www.taichi-maker.com/homepage/reference-index/arduino-library-index/accelstepper-library/
 
-CNC拓展板
+Last-minute engineer: (Accelstepper + A4988)
+> https://lastminuteengineers.com/a4988-stepper-motor-driver-arduino-tutorial/
+
+CNC拓展板：
 
 > http://www.taichi-maker.com/homepage/reference-index/motor-reference-index/arduino-cnc-shield/
 

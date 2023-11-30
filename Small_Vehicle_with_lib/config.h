@@ -8,15 +8,15 @@
 #define PS2_CLK_PIN  A11
 
 //A4988 Pin
-#define dirPin 10
-#define stepPin 11
+#define dirPin 2
+#define stepPin 3
 #define MS1 1
 #define MS2 1
 #define MS3 1
 
 //servo Pin
-#define steerSig 1
-#define gripperSig 1
+#define steerSig 11
+#define gripperSig 10
 
 //conveyor Pin
 #define convey_en 1
@@ -32,7 +32,7 @@
 #define DROP_REV 50
 #define motorInterfaceType 1
 #define MIN_POSITION 2000
-#define MAX_SPEED 1000
+#define MAX_STEER_SPEED 1000
 #define ACCELERATION 0
 #define SPEED 100
 
