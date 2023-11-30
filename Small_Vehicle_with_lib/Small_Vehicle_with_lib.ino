@@ -45,10 +45,10 @@ const int R2_in1 = 30;
 const int R2_in2 = 32;
 
 //steerSp, must be no more than 90
-int steerSp=10;
-unsigned int steerDelay=250;
-int gripSp=10;
-unsigned int gripDelay=250;
+int steerSp = 90;
+unsigned int steerDelay= 450;
+int gripSp = 30;
+unsigned int gripDelay= 150;
 
 /*小车运行状态枚举*/
 enum {
@@ -65,6 +65,7 @@ enum {
   enRotateAntiClock,
 } enCarState;
 
+int stepperDir = -1;
 int g_CarState = enSTOP;
 
 void (* resetFunc) (void) = 0;
@@ -84,7 +85,7 @@ void setup() {
   pinMode(MS2, OUTPUT);
   pinMode(MS3, OUTPUT);
 
-  stepper.setMaxSpeed(MAX_STEER_SPEED);
+  stepper.setMaxSpeed(MAX_STEPPER_SPEED);
   stepper.setAcceleration(ACCELERATION);
   stepper.setCurrentPosition(0);
 
@@ -394,7 +395,7 @@ void PS2_control(void)
   X2 = ps2x.Analog(PSS_RX);
 
 //auto mode
-  if(ps2x.ButtonPressed(PSB_PINK))
+  /*if(ps2x.ButtonPressed(PSB_PINK))
   {
       Serial.println("steer left."); 
       isAuto = 0;
@@ -414,7 +415,7 @@ void PS2_control(void)
       direction = 2;
       previousTime = millis();
   }
-  else{}
+  else{}*/
 
 //auto loop
   if (isAuto == 1)
@@ -514,12 +515,14 @@ void PS2_control(void)
       Serial.println("Grip closing.");
       gripper.write(90 + gripSp);
       delay(gripDelay);
+      gripper.write(90);
     }
     else if (ps2x.ButtonPressed(PSB_BLUE))
     {
       Serial.println("Grip opening.");
       gripper.write(90 - gripSp);
       delay(gripDelay);
+      gripper.write(90);
     }
     else{} 
 
@@ -528,38 +531,55 @@ void PS2_control(void)
     {
       Serial.println("steer left."); 
       steer.write(90 + steerSp);
-      delay(steerDelay);
-      steer.write(90);
+      //delay(steerDelay);
+      //steer.write(90);
+      //delay(200);
     }
-    else if(ps2x.ButtonPressed(PSB_PAD_RIGHT))
+    else if(ps2x.Button(PSB_PAD_RIGHT))
     {    
       Serial.println("steer right.");
       steer.write(90 - steerSp);
-      delay(steerDelay);
+      //delay(steerDelay);
+      //steer.write(90);
+      //delay(200);
+    }
+    else
+    {
       steer.write(90);
     }
 
-    if (Y2 < 128 - HOLD)         //上
+    if (ps2x.Button(PSB_PINK))         //上
     {
-      if (stepper.currentPosition() != 0)
-      {
-        Serial.println("stepper_up");
-        stepper.setSpeed(SPEED);
-        stepper.runSpeed();
-      }
+      stepperDir = 0;
     }
-    else if (Y2 > 128 + HOLD)
+    else if (ps2x.Button(PSB_RED))
     {
-      if (stepper.currentPosition() != MIN_POSITION)
-      {
-        Serial.println("stepper_down");
-        stepper.setSpeed(-SPEED);
-        stepper.runSpeed();
-      }
+      stepperDir = 1;
     }
     else{
-      stepper.stop();
+      stepperDir = -1;
     }
+
+  //   if (ps2x.Button(PSB_PAD_UP))         //上
+  //   {
+  //     if (stepper.currentPosition() != 0)
+  //     {
+  //       Serial.println("stepper_up");
+  //       stepper.setSpeed(SPEED);
+  //       stepper.run();
+  //     }
+  //   }
+  //   else if (ps2x.Button(PSB_PAD_DOWN))
+  //   {
+  //     if (stepper.currentPosition() != MIN_POSITION)
+  //     {
+  //       Serial.println("stepper_down");
+  //       stepper.run();
+  //     }
+  //   }
+  //   else{
+  //     stepper.stop();
+  //   }
   }
 
   //convey manual
@@ -674,6 +694,31 @@ void loop()
   {
     sp = 0;
   }
+
+  if (stepperDir = 0)
+  {
+    if (stepper.currentPosition() != 0)
+    {
+      Serial.println("stepper_up");
+      stepper.setSpeed(SPEED);
+      stepper.run();
+
+    }
+  }
+  else if (stepperDir = 1)
+  {
+    if (stepper.currentPosition() != MIN_POSITION)
+    {
+      Serial.println("stepper_up");
+      stepper.setSpeed(SPEED);
+      stepper.run();
+    }
+  }
+  else if (stepperDir = -1)
+  {
+    stepper.stop();
+  }
+
 
   switch (g_CarState)
   {
