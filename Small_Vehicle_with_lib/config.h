@@ -30,6 +30,11 @@
 #define split 1
 #define MAX_REV 200
 #define DROP_REV 50
+#define motorInterfaceType 1
+#define MIN_POSITION 2000
+#define MAX_SPEED 1000
+#define ACCELERATION 0
+#define SPEED 100
 
 //car rotate speed(0 - 255)
 #define RSPEED 200
@@ -49,18 +54,9 @@
 #define rumble      false  //振动模式
 
 //extern int rev_count;
-extern int delay_sec;
-extern unsigned long step_count;
 extern int error;
 extern PS2X ps2x; 
 extern byte type;
 extern byte vibrate;
 
-void stepper_stop();
-void stepper_up(unsigned long step_count);
-void stepper_down(unsigned long step_count);
 void ps2_init();
-
-int isMaxHeight(unsigned long step_count);
-int isMinHeight(unsigned long step_count);
-int isDropHeight(unsigned long step_count);

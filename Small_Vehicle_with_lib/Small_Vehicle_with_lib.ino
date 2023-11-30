@@ -1,51 +1,54 @@
-#include <PS2X_lib.h>  //PS2的库文件，需先添加到Arduino IDE的库文件
+#include <PS2X_lib.h> 
 #include <math.h>
 #include <Servo.h>
+#include <AccelStepper.h>
 #include "config.h"
-//每次使用请把夹爪升到最低状态
+
+//每次初始化请将夹爪升到最高点！！！
 //steer
 Servo steer;
 //gripper
 Servo gripper;
+//stepper
+AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
 
-  // PS2X ps2x;     
+// PS2X ps2x;     
+// int error = 0;
+// byte type = 0;
+// byte vibrate = 0;
 
-  // int error = 0;
-  // byte type = 0;
-  // byte vibrate = 0;
-
+unsigned long previousTime;
 //Wheels
-//int ACC = 0;
-int sp = 0;//speed initialization
-unsigned long step_count = 100;//MAX_REV * split * steps_per_rev;
-unsigned long previousTime = 0;
+int sp = 0;
+
 int steerState = 0;
 int stepperState = 0;
 int gripState = 0;
 int direction = 0;
+int isAuto = 0;
 
 // Motor L1 connections
-int L1_en = 9;
-int L1_in1 = 28;
-int L1_in2 = 26;
+const int L1_en = 9;
+const int L1_in1 = 28;
+const int L1_in2 = 26;
 // Motor R1 connections
-int R1_en = 8;
-int R1_in1 = 24;
-int R1_in2 = 22;
+const int R1_en = 8;
+const int R1_in1 = 24;
+const int R1_in2 = 22;
 //Motor L2 connections
-int L2_en = 6;
-int L2_in1 = 34;
-int L2_in2 = 36;
+const int L2_en = 6;
+const int L2_in1 = 34;
+const int L2_in2 = 36;
 //Motor R2 connections
-int R2_en = 7;
-int R2_in1 = 30;
-int R2_in2 = 32;
+const int R2_en = 7;
+const int R2_in1 = 30;
+const int R2_in2 = 32;
 
 //steerSp, must be no more than 90
 int steerSp=10;
-int steerDelay=250;
+unsigned int steerDelay=250;
 int gripSp=10;
-int gripDelay=250;
+unsigned int gripDelay=250;
 
 /*小车运行状态枚举*/
 enum {
@@ -71,6 +74,9 @@ void setup() {
   ps2_init();
 
   //stepper setup
+  //unsigned long step_count = 100;//MAX_REV * split * steps_per_rev;
+  //unsigned long previousTime = 0;
+
   pinMode(dirPin,OUTPUT);
   pinMode(stepPin,OUTPUT);
 
@@ -78,6 +84,11 @@ void setup() {
   pinMode(MS2, OUTPUT);
   pinMode(MS3, OUTPUT);
 
+  stepper.setMaxSpeed(MAX_SPEED);
+  stepper.setAcceleration(ACCELERATION);
+  stepper.setCurrentPosition(0);
+
+  //init split
   switch (split)
   {
     case 1:
@@ -361,146 +372,194 @@ void PS2_control(void)
   //DualShock Controller
   ps2x.read_gamepad(false, vibrate); //read controller and set large motor to spin at 'vibrate' speed
 
+  Serial.print("Stick L Values:");
+  Serial.print(ps2x.Analog(PSS_LY), DEC); //Left stick, Y axis. Other options: LX, RY, RX
+  Serial.print(",");
+  Serial.print(ps2x.Analog(PSS_LX), DEC);
+  Serial.print(" ");
+
+
+  //读取摇杆的数据
+  Y1 = ps2x.Analog(PSS_LY);
+  X1 = ps2x.Analog(PSS_LX);
+
+  Serial.print("Stick R Values:");
+  Serial.print(ps2x.Analog(PSS_RY), DEC); //Left stick, Y axis. Other options: LX, RY, RX
+  Serial.print(",");
+  Serial.print(ps2x.Analog(PSS_RX), DEC);
+  Serial.print(" ");
+
+  //读取摇杆的数据
+  Y2 = ps2x.Analog(PSS_RY);
+  X2 = ps2x.Analog(PSS_RX);
+
 //auto mode
   if(ps2x.ButtonPressed(PSB_PINK))
   {
       Serial.println("steer left."); 
-      steerState = 1;
+      isAuto = 0;
       stepperState = 1;
-      gripState = 1;
+      steerState = 0;
+      gripState = 0;
       direction = 1;
       previousTime = millis();
   }
   else if(ps2x.ButtonPressed(PSB_RED))
   {    
       Serial.println("steer right.");
-      steerState = 2;
+      isAuto = 1;
       stepperState = 1;
-      gripState = 1;
+      steerState = 0;
+      gripState = 0;
       direction = 2;
       previousTime = millis();
   }
   else{}
 
-//stepper
-  if (stepperState == 1 && gripState == 1 && (steerState != 0))
+//auto loop
+  if (isAuto == 1)
   {
-    if (isDropHeight(step_count) == 0)
+    //stepper_up
+    if (stepperState == 1)
     {
-        if (step_count < DROP_REV * split *steps_per_rev)
-        {
-            stepper_down(step_count);
-        }
-        else if (step_count > DROP_REV * split *steps_per_rev)
-        {
-            stepper_up(step_count);
-        }
-    }
-    else
-    {
+      stepper.setSpeed(SPEED);
+      stepper.moveTo(0);
+      stepper.runSpeed();
+
+      steerState = 1;
       stepperState = 0;
-    }
-  }
-  else{}
 
-//rotate
-  if (steerState == 1 && stepperState == 0 && gripState == 1)
-  {
-    if ((millis() - previousTime) < steerDelay)
-    {
-      steer.write(90 + steerSp);
-    }
-    else
-    {
-      steer.write(90);
       previousTime = millis();
-      steerState = 0;
+    }
+
+    if (stepperState == 0)
+    {
+      stepper.stop();
+    }
+
+    //rotate
+    if (steerState == 1)
+    {
+      if (((millis() - previousTime) < steerDelay) && direction == 1)
+      {
+        steer.write(90 + steerSp);
+      }
+      else if (((millis() - previousTime) < steerDelay) && direction == 2)
+      {
+        steer.write(90 - steerSp);
+      }
+      else
+      {
+        steer.write(90);
+        steerState = 2;
+        gripState = 1;
+        previousTime = millis(); 
+      }
+    }
+
+    //grip
+    if (gripState == 1)
+    {
+      if ((millis() - previousTime) < gripDelay)
+      {
+        steer.write(90 + gripSp);
+      }
+      else
+      {
+        steer.write(90);
+        gripState = 0;
+        delay(100);
+        previousTime = millis();
+      }
+    }
+
+    //rotate
+    if (steerState == 2)
+    {
+      if (((millis() - previousTime) < steerDelay) && direction == 1)
+      {
+        steer.write(90 - steerSp);
+      }
+      else if (((millis() - previousTime) < steerDelay) && direction == 2)
+      {
+        steer.write(90 + steerSp);
+      }
+      else
+      {
+        steer.write(90);
+        steerState = 0;
+        previousTime = millis();
+        stepperState = 2;
+      }
+    }
+
+    if (stepperState == 2)
+    {
+      stepper.setSpeed(-SPEED);
+      stepper.moveTo(MIN_POSITION);
+      stepper.runSpeed();
+
+      stepperState = 0;
+      isAuto = 0;
+      stepper.stop();
     }
   }
-  else if(steerState == 2 && stepperState == 0 && gripState == 1)
+
+
+  if (isAuto == 0)
   {
-    if ((millis() - previousTime) < steerDelay)
+    //grip maunal
+    if(ps2x.ButtonPressed(PSB_GREEN))
     {
+      Serial.println("Grip closing.");
+      gripper.write(90 + gripSp);
+    }
+    else if (ps2x.ButtonPressed(PSB_BLUE))
+    {
+      Serial.println("Grip opening.");
+      gripper.write(90 - gripSp);
+    }
+    else{} 
+
+  //steer manual
+    if(ps2x.Button(PSB_PAD_LEFT))
+    {
+      Serial.println("steer left."); 
       steer.write(90 - steerSp);
-    }
-    else
-    {
+      delay(steerDelay);
       steer.write(90);
-      previousTime = millis();
-      steerState = 0;
     }
-  }
-  else
-  {
-    steer.write(90);
+    else if(ps2x.ButtonPressed(PSB_PAD_RIGHT))
+    {    
+      Serial.println("steer right.");
+      delay(steerDelay);
+      steer.write(90);
+    }
+
+    if (Y2 < 128 - HOLD)         //上
+    {
+      if (stepper.currentPosition() != 0)
+      {
+        Serial.println("stepper_up");
+        stepper.setSpeed(SPEED);
+        stepper.runSpeed();
+      }
+    }
+    else if (Y2 > 128 + HOLD)
+    {
+      if (stepper.currentPosition() != MIN_POSITION)
+      {
+        Serial.println("stepper_down");
+        stepper.setSpeed(-SPEED);
+        stepper.runSpeed();
+      }
+    }
+    else{
+      stepper.stop();
+    }
   }
 
-//grip
-  if (steerState == 0 && stepperState == 0 && gripState == 1)
-  {
-    if ((millis() - previousTime) < gripDelay)
-    {
-      steer.write(90 + gripSp);
-    }
-    else
-    {
-      steer.write(90);
-      delay(100);
-      previousTime = millis();
-      gripState = 0;
-      (direction == 1) ? steerState = 1 : steerState =2;
-    }
-  }
-
-//rotate
-  if (steerState == 1 && gripState == 0)
-  {
-    if ((millis() - previousTime) < steerDelay)
-    {
-      steer.write(90 - steerSp);
-    }
-    else
-    {
-      steer.write(90);
-      previousTime = millis();
-      steerState = 0;
-    }
-  }
-  else if(steerState == 2 && gripState == 0)
-  {
-    if ((millis() - previousTime) < steerDelay)
-    {
-      steer.write(90 + steerSp);
-    }
-    else
-    {
-      steer.write(90);
-      previousTime = millis();
-      steerState = 0;
-    }
-  }
-  else
-  {
-    steer.write(90);
-  }
-
-//grip maunal
-  if(ps2x.ButtonPressed(PSB_GREEN))
-  {
-    Serial.println("Grip closing.");
-    gripper.write(90 + gripSp);
-  }
-  else if (ps2x.ButtonPressed(PSB_BLUE))
-  {
-    Serial.println("Grip opening.");
-    gripper.write(90 - gripSp);
-  }
-  else if (gripState == 0)
-  {
-    gripper.write(90);
-  }
-
-//convey manual
+  //convey manual
   if(ps2x.Button(PSB_PAD_UP))
   {
     Serial.println("convey in work.");
@@ -518,53 +577,6 @@ void PS2_control(void)
     delay(DELAY);
   }
 
-//steer manual
-  if(ps2x.Button(PSB_PAD_LEFT))
-  {
-    Serial.println("steer left."); 
-    steer.write(90 - steerSp);
-    delay(steerDelay);
-    steer.write(90);
-  }
-  else if(ps2x.ButtonPressed(PSB_PAD_RIGHT))
-  {    
-    Serial.println("steer right.");
-    delay(steerDelay);
-    steer.write(90);
-  }
-
-  Serial.print("Stick R Values:");
-  Serial.print(ps2x.Analog(PSS_RY), DEC); //Left stick, Y axis. Other options: LX, RY, RX
-  Serial.print(",");
-  Serial.print(ps2x.Analog(PSS_RX), DEC);
-  Serial.print(" ");
-
-  //读取摇杆的数据
-  Y2 = ps2x.Analog(PSS_RY);
-  X2 = ps2x.Analog(PSS_RX);
-
-  if (Y2 < 128 - HOLD)         //上
-  {
-    if (isMaxHeight(step_count) == 0)
-    {
-      Serial.println("stepper_up");
-      stepper_up(step_count);
-    }
-    delay(DELAY);
-  }
-  else if (Y2 > 128 + HOLD)
-  {
-    if (isMinHeight(step_count) == 0)
-    {
-      Serial.println("stepper_down");
-      stepper_down(step_count);
-    }
-    delay(DELAY);
-  }
-  else{
-
-  }
-
   //L1即手柄左侧前方下面的按键按下即小车减速
   if (ps2x.Button(PSB_L1))
   {
@@ -578,18 +590,6 @@ void PS2_control(void)
     Serial.println("R1 pressed");
     sp += PLUSACC;
   }
-
-  //When triggered
-  //print stick values if either is TRUE
-  Serial.print("Stick L Values:");
-  Serial.print(ps2x.Analog(PSS_LY), DEC); //Left stick, Y axis. Other options: LX, RY, RX
-  Serial.print(",");
-  Serial.print(ps2x.Analog(PSS_LX), DEC);
-  Serial.print(" ");
-
-  //读取摇杆的数据
-  Y1 = ps2x.Analog(PSS_LY);
-  X1 = ps2x.Analog(PSS_LX);
 
   /*左摇杆控制小车运动状态程序*/
   if (Y1 < 125 && X1 > 80 && X1 < 180)         //上
@@ -691,8 +691,6 @@ void loop()
 
   Serial.print("Speed:");
   Serial.println(sp);
-  Serial.print("Step_count:");
-  Serial.println(step_count);
 
  //下面的延时是必须要的,主要是为了避免过于频繁的发送手柄指令造成的不断重启
   delay(50);
