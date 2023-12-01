@@ -605,38 +605,44 @@ void PS2_control(void)
       steer.write(90);
     }
 
-    // if (ps2x.ButtonPressed(PSB_PINK))         //上
-    // {
-    //   if (stepper.currentPosition() != 0)
-    //   {
-    //     previousTime = millis();
-    //     Serial.println("stepper_up");
-    //     stepper.setSpeed(SPEED);     
-    //   }
-    //   delay(DELAY);
-    // }
-    // else if (ps2x.ButtonPressed(PSB_RED))
-    // {
-    //   if (stepper.currentPosition() != MIN_POSITION)
-    //   {
-    //     previousTime = millis();
-    //     Serial.println("stepper_down");
-    //     stepper.setSpeed(-SPEED);
-    //   }
-    //   delay(DELAY);
-    // }
-    // else{
-    // }
-
-    if (millis() - previousTime > 5000)
+    if (ps2x.ButtonPressed(PSB_PINK))         //上
     {
-      stepper.stop();
+      // if (stepper.currentPosition() != 0)
+      // {
+        Serial.println("stepper_up");
+        stepper.setSpeed(SPEED);     
+        stepper.move(500);
+      // }
+      // delay(DELAY);
     }
-    else
+    else if (ps2x.ButtonPressed(PSB_RED))
     {
-      Serial.println("stepper_move");
+      // if (stepper.currentPosition() != MIN_POSITION)
+      // {
+        Serial.println("stepper_down");
+        stepper.setSpeed(SPEED);    
+        stepper.move(-500);
+      // }
+      // delay(DELAY);
+    }
+    else{
+    }
+    
+    while (stepper.distanceToGo() != 0)
+    {
+      stepper.setSpeed(SPEED); 
       stepper.runSpeed();
     }
+
+    // if (millis() - previousTime > 5000)
+    // {
+    //   stepper.stop();
+    // }
+    // else
+    // {
+    //   Serial.println("stepper_move");
+    //   stepper.runSpeed();
+    // }
   }
 
   //convey manual
@@ -776,29 +782,34 @@ void loop()
   //   stepper.stop();
   // }
 
-  if (ps2x.ButtonPressed(PSB_PINK))         //上
-  {
-    if (stepper.currentPosition() != 0)
-    {
-      Serial.println("stepper_up");
-      stepper.setSpeed(SPEED);     
-      stepper.moveTo(0);
-      
-    }
-  }
-  else if (ps2x.ButtonPressed(PSB_RED))
-  {
-    if (stepper.currentPosition() != MIN_POSITION)
-    {
-      Serial.println("stepper_up");
-      stepper.setSpeed(-SPEED);     
-      stepper.moveTo(MIN_POSITION);
-      stepper.runToPosition();
-    }
-    delay(300);
-  }
-  else{
-  }
+  // if (ps2x.ButtonPressed(PSB_PINK))         //上
+  // {
+  // if (ps2x.ButtonPressed(PSB_PINK))         //上
+  // {
+  //   delay(50);
+  //   // if (stepper.currentPosition() != 0)
+  //   // {
+  //     Serial.println("stepper_up");
+  //     stepper.setSpeed(SPEED);     
+  //     stepper.moveTo(stepper.currentPosition() + 500);
+  //     stepper.runToPosition();
+  //     // stepper.runSpeed();
+  //   // }
+  // }
+  // }
+  // else if (ps2x.ButtonPressed(PSB_RED))
+  // {
+  //   // if (stepper.currentPosition() != MIN_POSITION)
+  //   // {
+  //     Serial.println("stepper_down");
+  //     stepper.setSpeed(-SPEED);     
+  //     stepper.moveTo(stepper.currentPosition() - 500);
+  //     stepper.runToPosition();
+  //     // stepper.runSpeed();
+  //   // }
+  // }
+  // else{
+  // }
 
   switch (g_CarState)
   {
@@ -821,5 +832,5 @@ void loop()
   Serial.println(sp);
 
  //下面的延时是必须要的,主要是为了避免过于频繁的发送手柄指令造成的不断重启
-  delay(50);
+  // delay(0);
 }
