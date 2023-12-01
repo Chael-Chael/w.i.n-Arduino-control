@@ -34,7 +34,7 @@
 #define MIN_POSITION 4000
 #define MAX_STEPPER_SPEED 1000
 #define ACCELERATION 500
-#define SPEED 1000
+#define SPEED 800
 
 //car rotate speed(0 - 255)
 #define RSPEED 200
