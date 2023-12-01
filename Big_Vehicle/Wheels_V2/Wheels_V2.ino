@@ -19,8 +19,8 @@
 #define DELAY 0
 
 //acceleration
-#define PLUSACC 5
-#define MINUSACC 5
+#define PLUSACC 10
+#define MINUSACC 10
 
 //speed
 #define MAX_SPEED 240
@@ -195,24 +195,24 @@ void setup() {
 void lift(int sp)
 {
   Serial.println("Lifting.");
+  analogWrite(lift_motor_enA,sp);
+  analogWrite(lift_motor_enB,sp);
   digitalWrite(lift_motor_in1,LOW);
   digitalWrite(lift_motor_in2,HIGH);
   digitalWrite(lift_motor_in3,LOW);
   digitalWrite(lift_motor_in4,HIGH);
-  analogWrite(lift_motor_enA,sp);
-  analogWrite(lift_motor_enB,sp);
   delay(DELAY);
 }
 
 void lower(int sp)
 {
+  analogWrite(lift_motor_enA,sp);
+  analogWrite(lift_motor_enB,sp);
   Serial.println("Lowering.");
   digitalWrite(lift_motor_in1,HIGH);
   digitalWrite(lift_motor_in2,LOW);
   digitalWrite(lift_motor_in3,HIGH);
   digitalWrite(lift_motor_in4,LOW);
-  analogWrite(lift_motor_enA,sp);
-  analogWrite(lift_motor_enB,sp);
   delay(DELAY);
 }
 

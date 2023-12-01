@@ -31,10 +31,10 @@
 #define MAX_REV 200
 #define DROP_REV 50
 #define motorInterfaceType 1
-#define MIN_POSITION 2000
-#define MAX_STEPPER_SPEED 20000
-#define ACCELERATION 1000
-#define SPEED 2000
+#define MIN_POSITION 4000
+#define MAX_STEPPER_SPEED 1000
+#define ACCELERATION 600
+#define SPEED 600
 
 //car rotate speed(0 - 255)
 #define RSPEED 200
@@ -42,7 +42,7 @@
 //brake acceleration
 #define RANGE 10
 //tweak delay between movements for better control
-#define DELAY 0
+#define DELAY 50
 //acceleration
 #define PLUSACC 5
 #define MINUSACC 5
