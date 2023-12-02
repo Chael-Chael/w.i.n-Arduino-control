@@ -9,7 +9,7 @@
 
 //A4988 Pin
 #define dirPin 12
-#define stepPin 3
+#define stepPin 4
 #define MS1 1
 #define MS2 1
 #define MS3 1
@@ -19,10 +19,10 @@
 #define gripperSig 10
 
 //conveyor Pin
-#define convey_en 1
-#define convey_in1 1
-#define convey_in2 1
-#define CONVEY_SPEED 100
+#define convey_en 3
+#define convey_in1 38
+#define convey_in2 40
+#define CONVEY_SPEED 255
 
 //step_motor
 #define steps_per_rev 200
@@ -35,7 +35,7 @@
 #define MAX_STEPPER_SPEED 1000
 #define ACCELERATION 500
 #define SPEED 1000
-#define MOVE 200
+#define MOVE 400
 
 //car rotate speed(0 - 255)
 #define RSPEED 200

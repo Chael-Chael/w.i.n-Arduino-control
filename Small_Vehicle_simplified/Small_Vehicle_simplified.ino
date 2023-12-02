@@ -392,13 +392,13 @@ void PS2_control(void)
   X2 = ps2x.Analog(PSS_RX);
 
   //grip maunal
-  if (ps2x.ButtonPressed(PSB_RED))
+  if (ps2x.ButtonPressed(PSB_PINK))
   {
     Serial.println("grip open.");
     gripper.write(90 + gripSp);
     delay(gripDelay);
   }
-  else if (ps2x.ButtonPressed(PSB_PINK))
+  else if (ps2x.ButtonPressed(PSB_RED))
   {
     Serial.println("grip close.");
     gripper.write(90 - gripSp);
