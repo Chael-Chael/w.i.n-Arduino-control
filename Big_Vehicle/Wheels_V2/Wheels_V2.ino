@@ -41,19 +41,19 @@ byte vibrate = 0;
 //int ACC = 0;
 int sp = 0;//speed initialization
 // Motor L1 connections
-int L1_en = 6;
-int L1_in1 = 24;
-int L1_in2 = 22;
+int L1_en = 7;
+int L1_in1 = 46;
+int L1_in2 = 48;
 // Motor R1 connections
-int R1_en = 8;
+int R1_en = 6; 
 int R1_in1 = 50;
 int R1_in2 = 52;
 //Motor L2 connections
-int L2_en = 9;
-int L2_in1 = 46;
-int L2_in2 = 48;
+int L2_en =8 ;
+int L2_in1 = 24;
+int L2_in2 = 22;
 //Motor R2 connections
-int R2_en = 7;
+int R2_en = 9;
 int R2_in1 = 28;
 int R2_in2 = 26;
 
@@ -396,22 +396,22 @@ void back(int sp)
   delay(DELAY);
 } 
 
-void left(int sp)
+void right(int sp)
 {
   Serial.println("Car left.");
   L2_backward(sp);
-  R1_forward(sp);
+  R1_backward(sp);
   L1_forward(sp);
-  R2_backward(sp);
+  R2_forward(sp);
   delay(DELAY);
 }
 
-void right(int sp)
+void left(int sp)
 {
   Serial.println("Car right.");
-  R1_backward(sp);
+  R1_forward(sp);
   L2_forward(sp);
-  R2_forward(sp);
+  R2_backward(sp);
   L1_backward(sp);
   delay(DELAY);
 }
