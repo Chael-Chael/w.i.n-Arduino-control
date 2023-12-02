@@ -8,7 +8,7 @@
 #define PS2_CLK_PIN  A11
 
 //A4988 Pin
-#define dirPin 2
+#define dirPin 12
 #define stepPin 3
 #define MS1 1
 #define MS2 1
@@ -34,7 +34,8 @@
 #define MIN_POSITION 4000
 #define MAX_STEPPER_SPEED 1000
 #define ACCELERATION 500
-#define SPEED 800
+#define SPEED 1000
+#define MOVE 200
 
 //car rotate speed(0 - 255)
 #define RSPEED 200

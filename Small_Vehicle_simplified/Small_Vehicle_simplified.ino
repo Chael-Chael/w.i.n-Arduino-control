@@ -45,9 +45,9 @@ const int R2_in1 = 30;
 const int R2_in2 = 32;
 
 //steerSp, must be no more than 90
-int steerSp = 30;
-unsigned int steerDelay= 450;
-int gripSp = 10;
+int steerSp = 60;
+unsigned int steerDelay= 900;
+int gripSp = 20;
 unsigned int gripDelay= 150;
 
 /*小车运行状态枚举*/
@@ -67,7 +67,7 @@ enum {
 
 int g_CarState = enSTOP;
 
-//void (* resetFunc) (void) = 0;
+void (* resetFunc) (void) = 0;
 
 void setup() {
   //PS2X Setup
@@ -84,6 +84,7 @@ void setup() {
 
   stepper.setMaxSpeed(MAX_STEPPER_SPEED);
   stepper.setAcceleration(ACCELERATION);
+  stepper.setSpeed(0);
 
   //init split
   switch (split)
@@ -391,13 +392,13 @@ void PS2_control(void)
   X2 = ps2x.Analog(PSS_RX);
 
   //grip maunal
-  if (ps2x.ButtonPressed(PSB_GREEN))
+  if (ps2x.ButtonPressed(PSB_RED))
   {
     Serial.println("grip open.");
     gripper.write(90 + gripSp);
     delay(gripDelay);
   }
-  else if (ps2x.ButtonPressed(PSB_BLUE))
+  else if (ps2x.ButtonPressed(PSB_PINK))
   {
     Serial.println("grip close.");
     gripper.write(90 - gripSp);
@@ -413,19 +414,19 @@ void PS2_control(void)
   {
     Serial.println("steer left."); 
     steer.write(90 + steerSp);
-    //delay(steerDelay);
-    //steer.write(90);
+    delay(steerDelay);
+    steer.write(90);
     //delay(200);
-    delay(DELAY);
+    // delay(DELAY);
   }
   else if(ps2x.ButtonPressed(PSB_PAD_RIGHT))
   {    
     Serial.println("steer right.");
     steer.write(90 - steerSp);
-    //delay(steerDelay);
-    //steer.write(90);
+    delay(steerDelay);
+    steer.write(90);
     //delay(200);
-    delay(DELAY);
+    // delay(DELAY);
   }
   else
   {
@@ -435,32 +436,29 @@ void PS2_control(void)
   if (Y2 < 128 - HOLD)         //上
   {
     Serial.println("stepper_up");  
-    stepper.move(50);
-    stepper.setSpeed(SPEED); 
+    stepper.move(-MOVE);
+    stepper.setSpeed(-SPEED); 
     while (stepper.distanceToGo() != 0)
     {
-      stepper.setSpeed(SPEED);
       stepper.runSpeed();
     }
   }
   else if (Y2 > 128 + HOLD)
   {
     Serial.println("stepper_down");  
-    stepper.move(-50);
-    stepper.setSpeed(-SPEED); 
+    stepper.move(MOVE);
+    stepper.setSpeed(SPEED); 
     while (stepper.distanceToGo() != 0)
     {
-      stepper.setSpeed(-SPEED); 
       stepper.runSpeed();
     }
   }
   else{
     stepper.setSpeed(0);
   }
-    
 
   //convey manual
-  if(ps2x.Button(PSB_PAD_UP))
+  if(ps2x.Button(PSB_GREEN))
   {
     Serial.println("convey in work.");
     analogWrite(convey_en,CONVEY_SPEED);
@@ -468,13 +466,35 @@ void PS2_control(void)
     digitalWrite(convey_in2,HIGH);
     delay(DELAY);
   }
-  else if(ps2x.Button(PSB_PAD_DOWN))
+  else if(ps2x.Button(PSB_BLUE))
   {    
     Serial.println("convey in work.");
     analogWrite(convey_en,CONVEY_SPEED);
-    digitalWrite(convey_in1,LOW);
-    digitalWrite(convey_in2,HIGH);
+    digitalWrite(convey_in1,HIGH);
+    digitalWrite(convey_in2,LOW);
     delay(DELAY);
+  }
+  else
+  {
+    digitalWrite(convey_in1, LOW);
+    digitalWrite(convey_in2, LOW);
+  }
+
+  if (ps2x.Button(PSB_PAD_UP))
+  {
+    Serial.println("steer left.");
+    steer.write(90 + steerSp);
+    delay(50);
+  }
+  else if (ps2x.Button(PSB_PAD_DOWN))
+  {
+    Serial.println("steer right.");
+    steer.write(90 - steerSp);
+    delay(50);
+  }
+  else
+  {
+    steer.write(90);
   }
 
   //L1即手柄左侧前方下面的按键按下即小车减速
