@@ -1,0 +1,1 @@
+把PS2X_Lib库文件安装到Arduino Libraries中。
