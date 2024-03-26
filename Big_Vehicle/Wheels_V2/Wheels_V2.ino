@@ -61,10 +61,10 @@ int R2_in2 = 26;
 //Motor connection
 int lift_motor_enA = 2;
 int lift_motor_enB = 3;
-int lift_motor_in1 = 41;
-int lift_motor_in2 = 39;
-int lift_motor_in3 = 37;
-int lift_motor_in4 = 35;
+int lift_motor_in1 = 31;
+int lift_motor_in2 = 33;
+int lift_motor_in3 = 35;
+int lift_motor_in4 = 37;
 
 //Lifting speed
 int liftSpeed = 0;
@@ -419,10 +419,8 @@ void left(int sp)
 void upleft(int sp)
 {
   Serial.println("Car upleft.");
-  L1_forward(sp);
   R1_forward(sp);
-  L2_forward(0);
-  R2_forward(sp);
+  L2_forward(sp);
   delay(DELAY);
 }
 
@@ -612,10 +610,10 @@ void loop()
     case enLEFT: left(sp); break;
     case enRIGHT: right(sp); break;
     case enBACK: back(sp); break;
-    case enUPLEFT: upleft(sp); break;
-    case enUPRIGHT: upright(sp); break;
-    case enDOWNLEFT: downleft(sp); break;
-    case enDOWNRIGHT: downright(sp); break;
+    case enUPLEFT: left(sp); break;
+    case enUPRIGHT: right(sp); break;
+    case enDOWNLEFT: left(sp); break;
+    case enDOWNRIGHT: right(sp); break;
     case enRotateClock: clock(RSPEED); break;
     case enRotateAntiClock: anticlock(RSPEED); break;
     default: break;

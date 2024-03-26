@@ -25,8 +25,8 @@
 #define PS2_SEL_PIN  A10
 #define PS2_CLK_PIN  A11
 //A4988 Pin
-#define dirPin 12
-#define stepPin 4
+#define dirPin 2
+#define stepPin 3
 #define MS1 1
 #define MS2 1
 #define MS3 1
@@ -34,10 +34,10 @@
 #define steerSig 11
 #define gripperSig 10
 //conveyor Pin
-#define convey_en 3
-#define convey_in1 38
-#define convey_in2 40
-#define CONVEY_SPEED 255
+#define convey_en 1
+#define convey_in1 1
+#define convey_in2 1
+#define CONVEY_SPEED 100
 
 //CONFIG STARTS HERE//
 //motor config
@@ -69,13 +69,12 @@
 #define MAX_STEPPER_SPEED 1000
 #define ACCELERATION 500
 #define SPEED 1000
-#define MOVE 400//每次按下按钮，转动周期
-#define INTERVAL 400//非阻塞
+#define STEPS_PER_ROUND 100 //每次按下按钮，转动周期
 
 //steer + grip config
-#define STEER_SPEED 60
-#define STEER_DELAY 900
-#define GRIP_SPEED 20
+#define STEER_SPEED 10
+#define STEER_DELAY 450
+#define GRIP_SPEED 10
 #define GRIP_DELAY 150
 
 //extern int rev_count;
