@@ -11,10 +11,13 @@ Servo steer;Servo gripper;
 AccelStepper stepper(1, stepPin, dirPin);
 //millis
 unsigned long preTime = 0;
+unsigned long pre = 0;
 unsigned long interval = 4000;//ms
 
 int dir = 0;
 int state = 0;
+int stepper_dir = 0;
+int stepper_state = 0;
 
 //Wheels
 int sp = 0;
@@ -471,32 +474,25 @@ void PS2_control(void)
     preTime = millis();
   }
 
+
   //stepper
-  if (Y2 < 128 - HOLD)         //上
+  if (Y2 < 128 - HOLD)    //&&stepper_state == 0;     //上
   {
-    Serial.println("stepper_up");  
+    stepper_dir = 1;
     stepper.move(-MOVE);
-    stepper.setSpeed(-SPEED);
-    stepper.runSpeed(); 
-    while (stepper.distanceToGo() != 0)
-    {
-      stepper.runSpeed();
-    }
+    stepper.setSpeed(-SPEED); 
+    stepper_state = 1;
+    // pre = millis();
   }
   else if (Y2 > 128 + HOLD)
   {
-    Serial.println("stepper_down");  
+    stepper_dir = -1;
     stepper.move(MOVE);
     stepper.setSpeed(SPEED); 
-    stepper.runSpeed();
-    while (stepper.distanceToGo() != 0)
-    {
-      stepper.runSpeed();
-    }
+    stepper_state = 1;
+    // pre = millis();
   }
-  else{
-    stepper.setSpeed(0);
-  }
+
 }
 
 void loop()
@@ -512,6 +508,46 @@ void loop()
 
   Serial.println(preTime);
   Serial.println(state);
+
+  Serial.print("Stepper:");
+  Serial.println(stepper_state);
+
+  if (stepper_dir == 1){
+    switch (stepper_state){
+      case 1:
+        Serial.println("stepper_up");  
+        if (stepper.distanceToGo() != 0){
+          stepper.runSpeed();
+        }
+        else if (stepper.distanceToGo() == 0){
+          stepper.setSpeed(0);
+          stepper_state = 0; 
+          stepper_dir = 0;
+        }
+        break;
+      case 0:
+        break;
+    }
+  }
+  else if (stepper_dir == -1)
+  {
+    switch (stepper_state){
+      case 1:
+        Serial.println("stepper_down");  
+        if (stepper.distanceToGo() != 0){
+          stepper.runSpeed();
+        }
+        else if (stepper.distanceToGo() == 0){
+          stepper.setSpeed(0);
+          stepper_state = 0; 
+          stepper_dir = 0;
+        }
+        break;
+      case 0:
+        break;
+    }
+  }
+
   if (dir == -1)
   {
     switch (state)
@@ -688,7 +724,6 @@ void loop()
         break;  
     }
   }
- 
 
   switch (g_CarState){
     case enSTOP: allstop(); break;

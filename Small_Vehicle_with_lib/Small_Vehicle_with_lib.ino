@@ -11,7 +11,7 @@ Servo steer;Servo gripper;
 AccelStepper stepper(1, stepPin, dirPin);
 //millis
 unsigned long preTime = 0;
-unsigned long interval = 2000;//ms
+unsigned long interval = 4000;//ms
 
 //Wheels
 int sp = 0;
@@ -314,91 +314,9 @@ void PS2_control(void)
 {
   //摇杆方向值变量的定义
   int X1, Y1, X2, Y2;
-  //grip
-  if (ps2x.ButtonPressed(PSB_PINK))
-  {
-    Serial.println("grip open.");
-    gripper.write(90 + gripSp);
-    delay(gripDelay);
-  }
-  else if (ps2x.ButtonPressed(PSB_RED))
-  {
-    Serial.println("grip close.");
-    gripper.write(90 - gripSp);
-    delay(gripDelay);
-  }
-  else
-  {
-    gripper.write(90);
-  }
-  //steer
-  if(ps2x.ButtonPressed(PSB_PAD_LEFT))
-  {
-    Serial.println("steer left."); 
-    steer.write(90 + steerSp);
-    delay(steerDelay);
-    steer.write(90);
-  }
-  else if(ps2x.ButtonPressed(PSB_PAD_RIGHT))
-  {    
-    Serial.println("steer right.");
-    steer.write(90 - steerSp);
-    delay(steerDelay);
-    steer.write(90);
-  }
-  else
-  {
-    steer.write(90);
-  }
-  //conveyer
-  if(ps2x.Button(PSB_GREEN))
-  {
-    Serial.println("convey in work.");
-    analogWrite(convey_en,CONVEY_SPEED);
-    digitalWrite(convey_in1,LOW);
-    digitalWrite(convey_in2,HIGH);
-    delay(DELAY);
-  }
-  else if(ps2x.Button(PSB_BLUE))
-  {    
-    Serial.println("convey in work.");
-    analogWrite(convey_en,CONVEY_SPEED);
-    digitalWrite(convey_in1,HIGH);
-    digitalWrite(convey_in2,LOW);
-    delay(DELAY);
-  }
-  else
-  {
-    digitalWrite(convey_in1, LOW);
-    digitalWrite(convey_in2, LOW);
-  } 
-  //stepper
-  if (Y2 < 128 - HOLD)         //上
-  {
-    Serial.println("stepper_up");  
-    //stepper.move(-MOVE);
-    stepper.setSpeed(-SPEED);
-    //stepper.runSpeed(); 
-    /*while (stepper.distanceToGo() != 0)
-    {
-      stepper.runSpeed();
-    }*/
-  }
-  else if (Y2 > 128 + HOLD)
-  {
-    Serial.println("stepper_down");  
-    //stepper.move(MOVE);
-    stepper.setSpeed(SPEED); 
-    //stepper.runSpeed();
-    /*while (stepper.distanceToGo() != 0)
-    {
-      stepper.runSpeed();
-    }*/
-  }
-  else{
-    stepper.setSpeed(0);
-  }
 
+  vibrate = ps2x.Analog(PSAB_CROSS);
+  ps2x.read_gamepad(false, vibrate);
 
   Serial.print("Stick L Values:");
   Serial.print(ps2x.Analog(PSS_LY), DEC); //Left stick, Y axis. Other options: LX, RY, RX
@@ -482,12 +400,111 @@ void PS2_control(void)
       g_CarState = enSTOP;
     }
   }
+
+  //grip
+  if (ps2x.ButtonPressed(PSB_PINK))
+  {
+    Serial.println("grip open.");
+    gripper.write(90 + gripSp);
+    delay(gripDelay);
+  }
+  else if (ps2x.ButtonPressed(PSB_RED))
+  {
+    Serial.println("grip close.");
+    gripper.write(90 - gripSp);
+    delay(gripDelay);
+  }
+  else
+  {
+    gripper.write(90);
+  }
+  //steer
+  if(ps2x.ButtonPressed(PSB_PAD_LEFT))
+  {
+    Serial.println("steer left 90 degrees."); 
+    steer.write(90 + steerSp);
+    delay(steerDelay);
+    steer.write(90);
+  }
+  else if(ps2x.ButtonPressed(PSB_PAD_RIGHT))
+  {    
+    Serial.println("steer right 90 degrees.");
+    steer.write(90 - steerSp);
+    delay(steerDelay);
+    steer.write(90);
+  }
+  else if(ps2x.ButtonPressed(PSB_PAD_UP))
+  {
+    Serial.println("steer left slightly."); 
+    steer.write(90 + steerSp);
+    delay(steerDelay / 2);
+    steer.write(90);
+  }
+  else if(ps2x.ButtonPressed(PSB_PAD_DOWN))
+  {
+    Serial.println("steer right slightly."); 
+    steer.write(90 - steerSp);
+    delay(steerDelay / 2);
+    steer.write(90);
+  }
+  else
+  {
+    steer.write(90);
+  }
+  //conveyer
+  if(ps2x.Button(PSB_GREEN))
+  {
+    Serial.println("convey in work.");
+    analogWrite(convey_en,CONVEY_SPEED);
+    digitalWrite(convey_in1,HIGH);
+    digitalWrite(convey_in2,LOW);//forward
+    delay(DELAY);
+  }
+  else if(ps2x.Button(PSB_BLUE))
+  {    
+    Serial.println("convey in work.");
+    analogWrite(convey_en,CONVEY_SPEED);
+    digitalWrite(convey_in1,LOW);
+    digitalWrite(convey_in2,HIGH);//back
+    delay(DELAY);
+  }
+  else
+  {
+    digitalWrite(convey_in1, LOW);
+    digitalWrite(convey_in2, LOW);
+  } 
+  //stepper
+  if (Y2 < 128 - HOLD)         //上
+  {
+    Serial.println("stepper_up");  
+    stepper.move(-MOVE);
+    stepper.setSpeed(-SPEED);
+    stepper.runSpeed(); 
+    while (stepper.distanceToGo() != 0)
+    {
+      stepper.runSpeed();
+    }
+  }
+  else if (Y2 > 128 + HOLD)
+  {
+    Serial.println("stepper_down");  
+    stepper.move(MOVE);
+    stepper.setSpeed(SPEED); 
+    stepper.runSpeed();
+    while (stepper.distanceToGo() != 0)
+    {
+      stepper.runSpeed();
+    }
+  }
+  else{
+    stepper.setSpeed(0);
+  }
 }
 
 void loop()
 {
 
-  //PS2_control();
+  PS2_control();
   if (isMaxSpeed(sp) == 1){
     sp = MAX_SPEED;
   }
@@ -495,10 +512,10 @@ void loop()
     sp = 0;
   }
 
-  if (millis() < preTime + INTERVAL){
+  /*if (millis() < preTime + INTERVAL){
     Serial.println("stepper run");
     stepper.runSpeed();
-  }
+  }*/
 
   switch (g_CarState){
     case enSTOP: allstop(); break;
@@ -518,5 +535,5 @@ void loop()
   Serial.println(sp);
 
  //下面的延时是必须要的,主要是为了避免过于频繁的发送手柄指令造成的不断重启
-  // delay(0);
+  delay(50);
 }

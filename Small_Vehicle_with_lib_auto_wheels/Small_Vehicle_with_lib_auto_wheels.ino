@@ -242,72 +242,37 @@ void back(int sp)
 void left(int sp)
 {
   Serial.println("Car left.");
-  L1_backward(sp);
   R1_forward(sp);
-  L2_forward(sp);
-  R2_backward(sp);
+  R2_forward(sp);
   delay(DELAY);
 }
 
 void right(int sp)
 {
   Serial.println("Car right.");
-  R1_backward(sp);
   L1_forward(sp);
-  R2_forward(sp);
-  L2_backward(sp);
-  delay(DELAY);
-}
-
-void upleft(int sp)
-{
-  Serial.println("Car upleft.");
-  R1_forward(sp);
   L2_forward(sp);
   delay(DELAY);
 }
 
-void upright(int sp)
-{
-  Serial.println("Car upright.");
-  L1_forward(sp);
-  R2_forward(sp);
-  delay(DELAY);
-}
-
-void downleft(int sp)
-{
-  Serial.println("Car downleft.");
-  L1_backward(sp);
-  R2_backward(sp);
-  delay(DELAY);
-}
-
-void downright(int sp)
-{
-  Serial.println("Car downright.");
-  R1_backward(sp);
-  L2_backward(sp);
-  delay(DELAY);
-}
 
 void clock(int sp)
 {
   Serial.println("Car clock.");
-  L1_forward(sp);
-  R1_backward(sp);
-  L2_forward(sp);
-  R2_backward(sp);
+  L1_backward(sp);
+  R1_forward(sp);
+  L2_backward(sp);
+  R2_forward(sp);
   delay(10);
 }
 
 void anticlock(int sp)
 {
   Serial.println("Car anticlock.");
-  L1_backward(sp);
-  R1_forward(sp);
-  L2_backward(sp);
-  R2_forward(sp);
+  L1_forward(sp);
+  R1_backward(sp);
+  L2_forward(sp);
+  R2_backward(sp);
   delay(10);
 }
 
@@ -517,95 +482,7 @@ void loop()
     switch (state)
     {
       case 0:
-        if (millis() < preTime + 1100){
-          Serial.println("auto steer left");
-          steer.write(90 - steerSp);
-        }
-        else{
-          steer.write(90);
-          state++;
-          preTime = millis();
-        }
-        break;
-      case 1:
-         if (millis() < preTime + AUTO_DELAY){
-          Serial.println("grip delay");
-          steer.write(90);
-         }
-         else{
-          steer.write(90);
-          state++;
-          preTime = millis();
-         }
-      case 2:
-        if (millis() < preTime + GRIP_AUTO_DELAY_OPEN){
-          Serial.println("auto grip open.");
-          gripper.write(90 - gripSp);
-        }
-        else{
-          gripper.write(90);
-          state++;
-          preTime = millis();
-        }
-        break;
-      case 3:
-        if (millis() < preTime + GRIP_AUTO_DELAY_CLOSE){
-          Serial.println("auto grip close.");
-          gripper.write(90 + gripSp);
-        }
-        else{
-          gripper.write(90);
-          state++;
-          preTime = millis();
-        }
-        break;
-      case 4:
-        if (millis() < preTime + 1000){
-        Serial.println("auto steer right");
-        steer.write(90 + steerSp);
-        }
-        else{
-          steer.write(90);
-          state++;
-          preTime = millis();
-        }
-        break;
-      case 5:
-        if (millis() < preTime + CONVEY_DELAY_BACKWARD){
-          Serial.println("auto convey move backward.");
-          analogWrite(convey_en,CONVEY_SPEED);
-          digitalWrite(convey_in1,LOW);
-          digitalWrite(convey_in2,HIGH);
-        }
-        else{
-            digitalWrite(convey_in1, LOW);
-            digitalWrite(convey_in2, LOW);
-            state++;
-            preTime = millis();
-        }
-        break;
-      case 6:
-        if (millis() < preTime + CONVEY_DELAY_FORWARD){
-          Serial.println("auto convey move forward.");
-          analogWrite(convey_en,CONVEY_SPEED);
-          digitalWrite(convey_in1,HIGH);
-          digitalWrite(convey_in2,LOW);
-        }
-        else{
-          digitalWrite(convey_in1, LOW);
-          digitalWrite(convey_in2, LOW);
-          dir = 0;
-          state = 0;
-        }
-        break;  
-    }
-  }
-  else if (dir == 1)//left,y
-  {
-    switch (state)
-    {
-      case 0:
-        if (millis() < preTime + 1000){
+        if (millis() < preTime + STEER_AUTO_DELAY_LEFT){
           Serial.println("auto steer right");
           steer.write(90 + steerSp);
         }
@@ -626,7 +503,7 @@ void loop()
           preTime = millis();
          }
       case 2:
-        if (millis() < preTime + GRIP_AUTO_DELAY_OPEN){
+        if (millis() < preTime + GRIP_AUTO_DELAY){
           Serial.println("auto grip open.");
           gripper.write(90 - gripSp);
         }
@@ -637,19 +514,8 @@ void loop()
         }
         break;
       case 3:
-        if (millis() < preTime + GRIP_AUTO_DELAY_CLOSE){
-          Serial.println("auto grip close.");
-          gripper.write(90 + gripSp);
-        }
-        else{
-          gripper.write(90);
-          state++;
-          preTime = millis();
-        }
-        break;
-      case 4:
-        if (millis() < preTime + 1100){
-        Serial.println("auto steer left");
+        if (millis() < preTime + STEER_AUTO_DELAY_LEFT){
+        Serial.println("auto steer right");
         steer.write(90 - steerSp);
         }
         else{
@@ -658,7 +524,7 @@ void loop()
           preTime = millis();
         }
         break;
-      case 5:
+      case 4:
         if (millis() < preTime + CONVEY_DELAY_BACKWARD){
           Serial.println("auto convey move backward.");
           analogWrite(convey_en,CONVEY_SPEED);
@@ -672,7 +538,7 @@ void loop()
             preTime = millis();
         }
         break;
-      case 6:
+      case 5:
         if (millis() < preTime + CONVEY_DELAY_FORWARD){
           Serial.println("auto convey move forward.");
           analogWrite(convey_en,CONVEY_SPEED);
@@ -685,7 +551,84 @@ void loop()
           dir = 0;
           state = 0;
         }
-        break;  
+        break;
+    }
+  }
+  else if (dir == 1)
+  {
+    switch (state)
+    {
+      case 0:
+        if (millis() < preTime + STEER_AUTO_DELAY_RIGHT){
+          Serial.println("auto steer left");
+          steer.write(90 - steerSp);
+        }
+        else{
+          steer.write(90);
+          state++;
+          preTime = millis();
+        }
+        break;
+      case 1:
+         if (millis() < preTime + AUTO_DELAY){
+          Serial.println("grip delay");
+          steer.write(90);
+         }
+         else{
+          steer.write(90);
+          state++;
+          preTime = millis();
+         }
+      case 2:
+        if (millis() < preTime + GRIP_AUTO_DELAY){
+          Serial.println("auto grip open.");
+          gripper.write(90 - gripSp);
+        }
+        else{
+          gripper.write(90);
+          state++;
+          preTime = millis();
+        }
+        break;
+      case 3:
+        if (millis() < preTime + STEER_AUTO_DELAY_RIGHT){
+        Serial.println("auto steer right");
+        steer.write(90 + steerSp);
+        }
+        else{
+          steer.write(90);
+          state++;
+          preTime = millis();
+        }
+        break;
+      case 4:
+        if (millis() < preTime + CONVEY_DELAY_BACKWARD){
+          Serial.println("auto convey move backward.");
+          analogWrite(convey_en,CONVEY_SPEED);
+          digitalWrite(convey_in1,LOW);
+          digitalWrite(convey_in2,HIGH);
+        }
+        else{
+            digitalWrite(convey_in1, LOW);
+            digitalWrite(convey_in2, LOW);
+            state++;
+            preTime = millis();
+        }
+        break;
+      case 5:
+        if (millis() < preTime + CONVEY_DELAY_FORWARD){
+          Serial.println("auto convey move forward.");
+          analogWrite(convey_en,CONVEY_SPEED);
+          digitalWrite(convey_in1,HIGH);
+          digitalWrite(convey_in2,LOW);
+        }
+        else{
+          digitalWrite(convey_in1, LOW);
+          digitalWrite(convey_in2, LOW);
+          dir = 0;
+          state = 0;
+        }
+        break;
     }
   }
  
@@ -693,13 +636,13 @@ void loop()
   switch (g_CarState){
     case enSTOP: allstop(); break;
     case enRUN: run(sp); break; 
-    case enLEFT: left(sp); break;
-    case enRIGHT: right(sp); break;
+    case enLEFT: left(TSP); break;
+    case enRIGHT: right(TSP); break;
     case enBACK: back(sp); break;
-    case enUPLEFT: upleft(sp); break;
-    case enUPRIGHT: upright(sp); break;
-    case enDOWNLEFT: downleft(sp); break;
-    case enDOWNRIGHT: downright(sp); break;
+    // case enUPLEFT: upleft(sp); break;
+    // case enUPRIGHT: upright(sp); break;
+    // case enDOWNLEFT: downleft(sp); break;
+    // case enDOWNRIGHT: downright(sp); break;
     case enRotateClock: clock(RSPEED); break;
     case enRotateAntiClock: anticlock(RSPEED); break;
     default: break;

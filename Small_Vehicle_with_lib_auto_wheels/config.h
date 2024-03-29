@@ -44,9 +44,10 @@
 //axis threshold for accelerating, must be no more than 125, smaller = less sensitive
 #define HOLD 100
 //speed
-#define MAX_SPEED 255
+#define MAX_SPEED 245
 //car rotate speed(0 - 255)
-#define RSPEED 200
+#define RSPEED 255
+#define TSP 255 //turnspeed
 #define LFSPEED 255
 //brake acceleration
 #define RANGE 10
@@ -66,17 +67,24 @@
 #define MIN_POSITION 4000
 
 #define split 1
-#define MAX_STEPPER_SPEED 1200
+#define MAX_STEPPER_SPEED 1000
 #define ACCELERATION 500
 #define SPEED 1000
 #define MOVE 500//每次按下按钮，转动周期
 #define INTERVAL 1000//非阻塞
 
 //steer + grip config
-#define STEER_SPEED 60
-#define STEER_DELAY 920
+#define STEER_SPEED 100
+#define STEER_DELAY 300
 #define GRIP_SPEED 30
 #define GRIP_DELAY 150
+
+#define STEER_AUTO_DELAY_RIGHT 1150
+#define STEER_AUTO_DELAY_LEFT 1200
+#define GRIP_AUTO_DELAY 300
+#define CONVEY_DELAY_FORWARD 890
+#define CONVEY_DELAY_BACKWARD 1500
+#define AUTO_DELAY 400
 
 //extern int rev_count;
 extern int error;

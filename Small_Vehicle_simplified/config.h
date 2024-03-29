@@ -32,10 +32,10 @@
 #define DROP_REV 50
 #define motorInterfaceType 1
 #define MIN_POSITION 4000
-#define MAX_STEPPER_SPEED 1000
+#define MAX_STEPPER_SPEED 2000
 #define ACCELERATION 500
-#define SPEED 1000
-#define MOVE 400
+#define SPEED 1200
+#define MOVE 500
 
 //car rotate speed(0 - 255)
 #define RSPEED 200
