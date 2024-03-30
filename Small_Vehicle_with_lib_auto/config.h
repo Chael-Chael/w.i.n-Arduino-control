@@ -44,15 +44,15 @@
 //axis threshold for accelerating, must be no more than 125, smaller = less sensitive
 #define HOLD 100
 //speed
-#define MAX_SPEED 245
+#define MAX_SPEED 255
 //car rotate speed(0 - 255)
 #define RSPEED 255
 #define LFSPEED 255
 //brake acceleration
 #define RANGE 10
 //move acceleration
-#define PLUSACC 5
-#define MINUSACC 5
+#define PLUSACC 25
+#define MINUSACC 25
 //tweak delay between movements for better control
 #define DELAY 0
 
@@ -82,7 +82,7 @@
 #define STEER_AUTO_DELAY_LEFT 1200
 #define GRIP_AUTO_DELAY_OPEN 300
 #define GRIP_AUTO_DELAY_CLOSE 400
-#define CONVEY_DELAY_FORWARD 1000
+#define CONVEY_DELAY_FORWARD 1500
 #define CONVEY_DELAY_BACKWARD 1500
 #define AUTO_DELAY 400
 

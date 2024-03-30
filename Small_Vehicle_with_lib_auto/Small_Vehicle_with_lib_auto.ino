@@ -517,7 +517,7 @@ void loop()
     switch (state)
     {
       case 0:
-        if (millis() < preTime + 1100){
+        if (millis() < preTime + 1000){
           Serial.println("auto steer left");
           steer.write(90 - steerSp);
         }
@@ -578,8 +578,8 @@ void loop()
           digitalWrite(convey_in2,HIGH);
         }
         else{
-            digitalWrite(convey_in1, LOW);
-            digitalWrite(convey_in2, LOW);
+            // digitalWrite(convey_in1, LOW);
+            // digitalWrite(convey_in2, LOW);
             state++;
             preTime = millis();
         }
@@ -666,8 +666,8 @@ void loop()
           digitalWrite(convey_in2,HIGH);
         }
         else{
-            digitalWrite(convey_in1, LOW);
-            digitalWrite(convey_in2, LOW);
+            // digitalWrite(convey_in1, LOW);
+            // digitalWrite(convey_in2, LOW);
             state++;
             preTime = millis();
         }

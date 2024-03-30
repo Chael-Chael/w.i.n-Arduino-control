@@ -19,8 +19,8 @@
 #define DELAY 0
 
 //acceleration
-#define PLUSACC 10
-#define MINUSACC 10
+#define PLUSACC 25
+#define MINUSACC 25
 
 //speed
 #define MAX_SPEED 240
@@ -59,7 +59,7 @@ int R2_in2 = 26;
 
 //Board Lift
 //Motor connection
-int lift_motor_enA = 2;
+int lift_motor_enA = 2;sss
 int lift_motor_enB = 3;
 int lift_motor_in1 = 31;
 int lift_motor_in2 = 33;

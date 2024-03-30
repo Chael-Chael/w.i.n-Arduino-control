@@ -476,7 +476,7 @@ void PS2_control(void)
 
 
   //stepper
-  if (Y2 < 128 - HOLD)    //&&stepper_state == 0;     //上
+  if (Y2 < 128 - HOLD && stepper_state == 0)    //&&stepper_state == 0;     //上
   {
     stepper_dir = 1;
     stepper.move(-MOVE);
@@ -484,7 +484,7 @@ void PS2_control(void)
     stepper_state = 1;
     // pre = millis();
   }
-  else if (Y2 > 128 + HOLD)
+  else if (Y2 > 128 + HOLD && stepper_state == 0)
   {
     stepper_dir = -1;
     stepper.move(MOVE);
